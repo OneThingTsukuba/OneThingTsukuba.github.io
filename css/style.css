@@ -51,10 +51,72 @@
   }
   
   /* フッター */
-  
+    footer {
+        text-align: center;
+        padding: 10px 0;
+    }
+
   @media (max-width: 768px) {
     nav {
       display: none;
     }
   }
-  
+
+  /* リンクのカラー設定 */
+a {
+    color: #6699CC; /* ライトモード: 淡いブルー */
+    text-decoration: none;
+}
+
+a:hover {
+    color: #557A99;
+}
+
+/* ヘッダーのタイトル設定 */
+.header-title {
+  white-space: nowrap;
+}
+
+/* ヘッダーのタイトル設定（PC用デフォルト） */
+.header-title .main-title {
+    font-size: 2.5rem; /* メインタイトルのフォントサイズ（調整可） */
+  }
+  .header-title .sub-title {
+    font-size: 1.5rem; /* サブタイトルはメインより小さく */
+  }
+
+/* デフォルトは横並び（PCなど横幅が十分な画面） */
+.header-title .main-title,
+.header-title .sub-title {
+  display: inline;
+}
+
+/* 横幅が狭い場合は2行表示にし、サブタイトルは1行に収める */
+@media (max-width: 768px) {
+  .header-title .main-title,
+  .header-title .sub-title {
+    display: block;
+  }
+  .header-title .sub-title {
+    font-size: 1.2rem; /* 調整可能 */
+    white-space: nowrap; /* 1行に収める */
+  }
+}
+
+  /* OSのダークモード設定に合わせたダークモード */
+@media (prefers-color-scheme: dark) {
+    body {
+      background-color: #1f1f1f;
+      color: #e0e0e0;
+    }
+    header {
+      background-color: #333;
+      color: #e0e0e0;
+    }
+    a {
+        color: #88AAEE; /* ダークモード用: やや明るめのブルー */
+    }
+    a:hover {
+        color: #77AADD;
+    }
+  }
