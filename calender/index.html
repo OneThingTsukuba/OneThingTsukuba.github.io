@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>カレンダー | OneThing</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .calendar-wrapper iframe {
+      width: 100%;
+      height: 80vh;
+      border: solid 1px #777;
+    }
+    @media (prefers-color-scheme: dark) {
+      .calendar-wrapper iframe {
+        filter: invert(0.85) hue-rotate(180deg);
+        border-color: #555;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header>
+    <h1 class="header-title">
+      <span class="main-title">OneThing</span>
+      <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
+    </h1>
+    <nav aria-label="メインナビゲーション">
+      <ul>
+        <li><a href="/">トップ</a></li>
+        <li><a href="/calender">カレンダー</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main>
+    <section>
+      <h2>活動カレンダー</h2>
+      <div class="calendar-wrapper">
+        <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Asia%2FTokyo&showPrint=0&mode=AGENDA&showCalendars=0&showNav=0&title=OneThing&src=b25ldGhpbmcudHN1a3ViYUBnbWFpbC5jb20&color=%238e24aa" frameborder="0" scrolling="no"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <!-- フッター -->
+  <footer>
+    <p>&copy; 2025 OneThing All Rights Reserved.</p>
+  </footer>
+</body>
+</html>
