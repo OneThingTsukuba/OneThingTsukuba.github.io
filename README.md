@@ -27,14 +27,16 @@ src/
   pages/index.astro
   pages/calender/index.astro
   pages/dashboard.astro
+  pages/[dashboard].astro
   styles/dashboard.css
+  styles/dashboard-world.css
   styles/global.css
 astro.config.mjs
 .github/workflows/deploy.yml
 ```
 
 既存URLとの互換性を優先し、カレンダーページは `/calender` のままにしています。
-ダッシュボードページは `/dashboard` から `/dashboard20` まであり、Google Calendarの公開ICSをビルド時に取得して今後のイベントを表示します。
+ダッシュボードページは `/dashboard` から `/dashboard100` まであり、Google Calendarの公開ICSをビルド時に取得して今後のイベントを表示します。
 
 ## 公開
 

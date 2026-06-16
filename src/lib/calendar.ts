@@ -28,8 +28,22 @@ const CALENDAR_ICS_URL =
 
 const TOKYO_TIME_ZONE = 'Asia/Tokyo';
 const DAY_MS = 24 * 60 * 60 * 1000;
+const dashboardCache = new Map<number, Promise<CalendarDashboard>>();
 
 export async function getCalendarDashboard(limit = 12): Promise<CalendarDashboard> {
+  const cachedDashboard = dashboardCache.get(limit);
+
+  if (cachedDashboard) {
+    return cachedDashboard;
+  }
+
+  const dashboardPromise = fetchCalendarDashboard(limit);
+  dashboardCache.set(limit, dashboardPromise);
+
+  return dashboardPromise;
+}
+
+async function fetchCalendarDashboard(limit: number): Promise<CalendarDashboard> {
   const fetchedAt = new Date();
 
   try {

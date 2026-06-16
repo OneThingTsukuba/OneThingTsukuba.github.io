@@ -4,7 +4,7 @@ interface Props {
   totalDesigns?: number;
 }
 
-const { refreshSeconds, totalDesigns = 20 } = Astro.props;
+const { refreshSeconds, totalDesigns = 100 } = Astro.props;
 const dashboardPaths = Array.from({ length: totalDesigns }, (_, index) => (index === 0 ? '/dashboard' : `/dashboard${index + 1}`));
 const refreshDelayMs = refreshSeconds ? refreshSeconds * 1000 : 0;
 const switcherScript = `

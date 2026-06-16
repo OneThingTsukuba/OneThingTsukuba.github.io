@@ -16,11 +16,13 @@
 │   ├── pages/
 │   │   ├── index.astro        # トップページ
 │   │   ├── dashboard.astro    # イベントダッシュボード
+│   │   ├── [dashboard].astro  # dashboard21〜dashboard100
 │   │   └── calender/
 │   │       └── index.astro    # カレンダーページ
 │   └── styles/
 │       ├── global.css         # メインのスタイルシート
-│       └── dashboard.css      # ダッシュボード用スタイル
+│       ├── dashboard.css      # ダッシュボード用スタイル
+│       └── dashboard-world.css # 追加ダッシュボード用スタイル
 ├── public/                    # 画像、フォント、その他の静的メディア
 ├── .github/workflows/
 │   └── deploy.yml             # GitHub Pages デプロイ
@@ -52,7 +54,7 @@
 - 連絡先、問い合わせフォームなどの案内
 
 ### 3.7 ダッシュボード
-- `/dashboard`から`/dashboard20`までの複数デザインでGoogle Calendarの公開ICSを参照し、今後のイベントを表示
+- `/dashboard`から`/dashboard100`までの複数デザインでGoogle Calendarの公開ICSを参照し、今後のイベントを表示
 - 静的サイトのため、GitHub Actionsで1時間ごとに再ビルドしてイベント情報を更新
 - ページを開いたままでも1時間ごとにランダムで別デザインへ遷移
 - 左下の`NEXT DESIGN`から手動でランダムに別デザインへ切り替え

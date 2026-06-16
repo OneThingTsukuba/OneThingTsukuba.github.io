@@ -1,0 +1,42 @@
+---
+import AntiqueDashboard from '../components/world-dashboards/AntiqueDashboard.astro';
+import AtelierDashboard from '../components/world-dashboards/AtelierDashboard.astro';
+import CosmicDashboard from '../components/world-dashboards/CosmicDashboard.astro';
+import CyberDashboard from '../components/world-dashboards/CyberDashboard.astro';
+import FuturistDashboard from '../components/world-dashboards/FuturistDashboard.astro';
+import ImperialDashboard from '../components/world-dashboards/ImperialDashboard.astro';
+import IndustrialDashboard from '../components/world-dashboards/IndustrialDashboard.astro';
+import SoukDashboard from '../components/world-dashboards/SoukDashboard.astro';
+import VoyageDashboard from '../components/world-dashboards/VoyageDashboard.astro';
+import ZenDashboard from '../components/world-dashboards/ZenDashboard.astro';
+
+export function getStaticPaths() {
+  return Array.from({ length: 80 }, (_, index) => {
+    const variant = index + 21;
+
+    return {
+      params: { dashboard: `dashboard${variant}` },
+      props: { variant },
+    };
+  });
+}
+
+const { variant } = Astro.props;
+const families = [
+  ZenDashboard,
+  ImperialDashboard,
+  SoukDashboard,
+  FuturistDashboard,
+  CyberDashboard,
+  AntiqueDashboard,
+  AtelierDashboard,
+  IndustrialDashboard,
+  VoyageDashboard,
+  CosmicDashboard,
+];
+const familyIndex = Math.floor((variant - 21) / 8);
+const Component = families[familyIndex] ?? CosmicDashboard;
+const tone = ((variant - 21) % 8) + 1;
+---
+
+<Component variant={variant} tone={tone} />

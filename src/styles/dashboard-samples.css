@@ -562,14 +562,16 @@
 }
 
 .sample-v11 .sample-shell {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(360px, 0.78fr) minmax(0, 1fr);
+  --sample-pad: 30px;
+  --sample-panel-pad: 28px;
+  grid-template-columns: minmax(480px, 0.86fr) minmax(0, 1.3fr);
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .sample-v11 .sample-next {
-  display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  gap: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .sample-v11 .sample-next .sample-heading {
@@ -577,7 +579,17 @@
 }
 
 .sample-v11 .sample-feature {
+  grid-template-rows: auto minmax(0, 1fr);
+  flex: 1;
   min-width: 0;
+}
+
+.sample-v11 .sample-event h2 {
+  font-size: clamp(3rem, 4.2vw, 4.7rem);
+}
+
+.sample-v11 .sample-row {
+  min-height: 116px;
 }
 
 .sample-v12 {

@@ -1,0 +1,69 @@
+---
+import DashboardVariantLayout from '../../layouts/DashboardVariantLayout.astro';
+import {
+  formatDateLabel,
+  formatDuration,
+  formatFetchedAt,
+  formatRelativeDay,
+  formatTimeRange,
+  formatWeekday,
+  getCalendarDashboard,
+} from '../../lib/calendar';
+import '../../styles/dashboard-world.css';
+
+interface Props {
+  variant: number;
+  tone: number;
+}
+
+const { variant, tone } = Astro.props;
+const dashboard = await getCalendarDashboard();
+const events = dashboard.events;
+const featuredEvent = events[0] ?? null;
+const displaySummary = (summary: string) => summary.replace(/\s+(#\d+)/, '\u00a0$1');
+---
+
+<DashboardVariantLayout title={`Dashboard ${variant} | OneThing`} bodyClass={`world-dashboard world-imperial world-tone-${tone} world-v${variant}`} refreshSeconds={3600}>
+  <main class="imperial-gate">
+    <section class="imperial-hero" aria-labelledby={`imperial-next-${variant}`}>
+      <div class="imperial-seal">OT</div>
+      <p class="world-kicker">Next Audience</p>
+      <h1 id={`imperial-next-${variant}`}>次のイベント</h1>
+      {
+        featuredEvent ? (
+          <article>
+            <time datetime={featuredEvent.start.toISOString()}>
+              <span>{formatRelativeDay(featuredEvent, dashboard.fetchedAt)}</span>
+              <strong>{formatDateLabel(featuredEvent.start)}</strong>
+              <small>{formatWeekday(featuredEvent.start)}</small>
+            </time>
+            <div>
+              <h2>{displaySummary(featuredEvent.summary)}</h2>
+              <p>{formatTimeRange(featuredEvent)} / {formatDuration(featuredEvent)}</p>
+              <p>{featuredEvent.locationShort}</p>
+              {featuredEvent.url && <a href={featuredEvent.url}>イベントページ</a>}
+            </div>
+          </article>
+        ) : (
+          <div class="world-empty">Coming Soon</div>
+        )
+      }
+    </section>
+    <aside class="imperial-ledger" aria-labelledby={`imperial-list-${variant}`}>
+      <header>
+        <p class="world-kicker">Ceremony List</p>
+        <h2 id={`imperial-list-${variant}`}>今後の予定</h2>
+        <span>{dashboard.allEventCount}件</span>
+      </header>
+      {events.map((event, index) => (
+        <article>
+          <b>{String(index + 1).padStart(2, '0')}</b>
+          <time datetime={event.start.toISOString()}>{formatDateLabel(event.start)} {formatWeekday(event.start)}</time>
+          <h3>{displaySummary(event.summary)}</h3>
+          <p>{formatRelativeDay(event, dashboard.fetchedAt)} / {formatTimeRange(event)}</p>
+        </article>
+      ))}
+    </aside>
+    <p class="world-sync">Last Sync {formatFetchedAt(dashboard.fetchedAt)} / <a href={dashboard.sourceUrl}>ICS</a></p>
+  </main>
+</DashboardVariantLayout>
