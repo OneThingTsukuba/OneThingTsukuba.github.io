@@ -1,0 +1,14 @@
+{
+  "name": "onething-tsukuba-site",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "6.4.7"
+  }
+}

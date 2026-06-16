@@ -1,0 +1,53 @@
+---
+import '../styles/global.css';
+
+type NavItem = {
+  href: string;
+  label: string;
+};
+
+interface Props {
+  title: string;
+  navItems?: NavItem[];
+}
+
+const { title, navItems = [] } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <h1 class="header-title">
+        <span class="main-title">OneThing</span>
+        <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
+      </h1>
+      {
+        navItems.length > 0 && (
+          <nav class="site-nav" aria-label="メインナビゲーション">
+            <ul>
+              {navItems.map((item) => (
+                <li>
+                  <a href={item.href}>{item.label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+    </header>
+
+    <main class="site-main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 OneThing All Rights Reserved.</p>
+    </footer>
+  </body>
+</html>

@@ -1,19 +1,33 @@
 # Requirement.md
 
 ## 1. はじめに
-このドキュメントは、GitHub Pages上に構築されるOneThing紹介サイトのリポジトリに必要なファイル構成およびコンテンツ要件を定義するものです。本サイトは、OneThingの概要、目的、活動内容、参加方法、運営体制、お問い合わせに関する情報をユーザーに提供します。
+このドキュメントは、GitHub Pages上に構築されるOneThing紹介サイトのリポジトリに必要なファイル構成およびコンテンツ要件を定義するものです。本サイトはAstroで静的サイトとして生成し、OneThingの概要、目的、活動内容、参加方法、運営体制、お問い合わせに関する情報をユーザーに提供します。
 
 ## 2. リポジトリ構成
 リポジトリの基本ディレクトリとファイル構成は以下の通りです。
 ```
 / (ルート)
-├── index.html         # トップページ（サイトのエントリーポイント）
-├── css/
-│   └── style.css      # メインのスタイルシート
-├── assets/            # 画像、フォント、その他のメディア
-│   ├── images/
-│   └── fonts/
-└── README.md          # プロジェクト概要・セットアップ手順
+├── src/
+│   ├── layouts/
+│   │   ├── BaseLayout.astro       # 共通レイアウト
+│   │   └── DashboardLayout.astro  # ダッシュボード用レイアウト
+│   ├── lib/
+│   │   └── calendar.ts        # ICS取得・パース処理
+│   ├── pages/
+│   │   ├── index.astro        # トップページ
+│   │   ├── dashboard.astro    # イベントダッシュボード
+│   │   └── calender/
+│   │       └── index.astro    # カレンダーページ
+│   └── styles/
+│       ├── global.css         # メインのスタイルシート
+│       └── dashboard.css      # ダッシュボード用スタイル
+├── public/                    # 画像、フォント、その他の静的メディア
+├── .github/workflows/
+│   └── deploy.yml             # GitHub Pages デプロイ
+├── astro.config.mjs           # Astro設定
+├── package.json               # npm scripts / dependencies
+├── package-lock.json          # npm lockfile
+└── README.md                  # プロジェクト概要・セットアップ手順
 ```
 
 ## 3. コンテンツ要件
@@ -37,8 +51,14 @@
 ### 3.6 お問い合わせ
 - 連絡先、問い合わせフォームなどの案内
 
+### 3.7 ダッシュボード
+- `/dashboard`から`/dashboard20`までの複数デザインでGoogle Calendarの公開ICSを参照し、今後のイベントを表示
+- 静的サイトのため、GitHub Actionsで1時間ごとに再ビルドしてイベント情報を更新
+- ページを開いたままでも1時間ごとにランダムで別デザインへ遷移
+- 左下の`NEXT DESIGN`から手動でランダムに別デザインへ切り替え
+
 ## 4. HTML/CSSの要件
-- **セマンティックマークアップ:** `<header>`, `<nav>`, `<main>`, `<footer>`等のHTML5要素を使用
+- **セマンティックマークアップ:** Astroコンポーネント内で`<header>`, `<nav>`, `<main>`, `<footer>`等のHTML5要素を使用
 - **レスポンシブデザイン:** `<meta name="viewport" content="width=device-width, initial-scale=1">`を利用
 - **アクセシビリティ:** alt属性、ARIA属性を適切に使用
 - **カラーパレット:**  
@@ -47,8 +67,10 @@
   CSSメディアクエリを利用して自動切替を実装
 
 ## 5. GitHub Pages特有の注意点
-- 公開対象ブランチ（mainまたはgh-pages）のルールを明確化
-- Jekyll等の静的サイトジェネレーター利用時の設定ファイル管理の検討
+- GitHub PagesのSourceは`GitHub Actions`を利用
+- `main`ブランチへのpushでAstroをビルドし、`dist/`相当の成果物を公開
+- 公開ICSの更新を反映するため、GitHub Actionsを1時間ごとにも実行
+- `dist/`は生成物としてリポジトリには含めない
 
 ## 6. 今後の拡張
 - JavaScriptを利用したインタラクティブ機能の追加（例: `js/`ディレクトリの構成検討）

@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const navItems = [
+  { href: '#onething', label: 'OneThingとは' },
+  { href: '#purpose', label: '目的' },
+  { href: '#activities', label: '活動内容' },
+  { href: '#participation', label: '参加方法' },
+  { href: '#management', label: '運営体制' },
+  { href: '#contact', label: 'お問い合わせ' },
+  { href: '/dashboard', label: 'ダッシュボード' },
+  { href: '/calender', label: 'カレンダー' },
+];
+
+const calendarUrl =
+  'https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Asia%2FTokyo&showPrint=0&src=b25ldGhpbmcudHN1a3ViYUBnbWFpbC5jb20&src=YjViYTQ3MTQzMzk3M2M1YTcwNmE5YjUxNGVmZGRmNjUxNWMxYTU2MDViMzg3OTNjMTkwN2YyN2NhYjg0YWIxOUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=Y18xNWY3OWMzYjdkOTk2NzA1ODQwNzdhYTFmMWE5OGNhNmZmOTAzZmNmYzFlZTU4OGQ3Y2IyYTMyMjQzNzgwNmNkQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20&src=amEuamFwYW5lc2UjaG9saWRheUBncm91cC52LmNhbGVuZGFyLmdvb2dsZS5jb20&color=%238e24aa&color=%23f4511e&color=%23616161&color=%23ad1457';
+---
+
+<BaseLayout title="OneThing 紹介サイト" navItems={navItems}>
+  <section id="onething">
+    <h2>OneThingとは</h2>
+    <p>2023年より活動している、筑波大学のエンジニアコミュニティです。</p>
+  </section>
+
+  <section id="purpose">
+    <h2>OneThingの目的</h2>
+    <p>1つの作品を通して次への一歩を踏み出し、仲間と共に挑戦ができる、筑波大学1番のエンジニアコミュニティを目指しています。</p>
+  </section>
+
+  <section id="activities">
+    <h2>活動内容</h2>
+    <p>
+      もくもく会（週1程度）・勉強会（過去トピック：Claude Code・git command）LT会・初心者向けのプログラミングワークショップ<br />
+      協賛企業様とのプロジェクト
+    </p>
+    <div class="calendar-wrapper calendar-wrapper--overview">
+      <iframe
+        class="calendar-frame"
+        src={calendarUrl}
+        title="OneThing 活動カレンダー"
+        loading="lazy"
+        scrolling="no"
+      ></iframe>
+    </div>
+  </section>
+
+  <section id="participation">
+    <h2>OneThingへの参加方法</h2>
+    <p>
+      以下のリンクよりイベント一覧を見ることができますので、そちらから参加方法を確認してください。<br />
+      <a href="https://luma.com/user/OneThingTsukuba">イベント一覧</a>
+    </p>
+  </section>
+
+  <section id="management">
+    <h2>運営体制</h2>
+    <p>OneThingは、筑波大学の学生メンバーを中心に、イベント企画・広報・企業連携などを分担して運営しています。</p>
+  </section>
+
+  <section id="contact">
+    <h2>お問い合わせ</h2>
+    <p>
+      <a href="https://x.com/OneThingTsukuba">公式Twitter</a>のDM、もしくは<a href="https://lin.ee/bfxUD30">公式LINE</a>にてお問い合わせください。
+    </p>
+  </section>
+</BaseLayout>

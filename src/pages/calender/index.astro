@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const navItems = [
+  { href: '/', label: 'トップ' },
+  { href: '/dashboard', label: 'ダッシュボード' },
+  { href: '/calender', label: 'カレンダー' },
+];
+
+const calendarUrl =
+  'https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Asia%2FTokyo&showPrint=0&mode=AGENDA&showCalendars=0&showNav=0&title=OneThing&src=b25ldGhpbmcudHN1a3ViYUBnbWFpbC5jb20&color=%238e24aa';
+---
+
+<BaseLayout title="カレンダー | OneThing" navItems={navItems}>
+  <section>
+    <h2>活動カレンダー</h2>
+    <div class="calendar-wrapper calendar-wrapper--agenda">
+      <iframe
+        class="calendar-frame"
+        src={calendarUrl}
+        title="OneThing 活動カレンダー"
+        loading="lazy"
+        scrolling="no"
+      ></iframe>
+    </div>
+  </section>
+</BaseLayout>
