@@ -19,6 +19,10 @@
   padding: 0;
 }
 
+.dash-device-notice {
+  display: none;
+}
+
 .dash-root {
   position: fixed;
   inset: 0;
@@ -464,11 +468,40 @@
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1100px) {
   .dash-root {
-    position: static;
+    display: none;
+  }
+
+  .dash-device-notice {
+    display: flex;
     min-height: 100vh;
-    overflow: auto;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px;
+    background: #0f0f13;
+    color: #8888a0;
+    font-family: "Inter", "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .dash-device-notice p {
+    margin: 0;
+  }
+
+  .dash-device-notice a {
+    color: #9c96ff;
+    text-decoration: none;
+  }
+
+  .dash-device-notice a:hover,
+  .dash-device-notice a:focus-visible {
+    color: #2ee89e;
+    text-decoration: underline;
   }
 
   .dash-container {
