@@ -2,7 +2,6 @@
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 import {
   formatDateLabel,
-  formatDuration,
   formatFetchedAt,
   formatRelativeDay,
   formatTimeRange,
@@ -10,93 +9,182 @@ import {
   getCalendarDashboard,
 } from '../lib/calendar';
 
-const dashboard = await getCalendarDashboard();
+const dashboard = await getCalendarDashboard(8);
 const events = dashboard.events;
 const featuredEvent = events[0] ?? null;
+const agendaEvents = featuredEvent ? events.slice(1, 6) : events.slice(0, 5);
+const weekEventCount = events.filter((event) => {
+  const weekLater = dashboard.fetchedAt.getTime() + 7 * 24 * 60 * 60 * 1000;
+  return event.start.getTime() <= weekLater;
+}).length;
+
+const tokyoTimeZone = 'Asia/Tokyo';
+const clockFormatter = new Intl.DateTimeFormat('ja-JP', {
+  timeZone: tokyoTimeZone,
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
+  timeZone: tokyoTimeZone,
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+  weekday: 'short',
+});
+const monthNumberFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: tokyoTimeZone,
+  month: 'numeric',
+});
+const dayFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: tokyoTimeZone,
+  day: '2-digit',
+});
+
 const formatDisplaySummary = (summary: string) => summary.replace(/\s+(#\d+)/, '\u00a0$1');
+const clockScript = `
+(() => {
+  const clock = document.querySelector('[data-dashboard-clock]');
+  const date = document.querySelector('[data-dashboard-date]');
+  const clockFormatter = new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  });
+  const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+  });
+  const updateClock = () => {
+    const now = new Date();
+    if (clock) {
+      clock.textContent = clockFormatter.format(now);
+      clock.setAttribute('datetime', now.toISOString());
+    }
+    if (date) {
+      date.textContent = dateFormatter.format(now);
+      date.setAttribute('datetime', now.toISOString());
+    }
+  };
+
+  updateClock();
+  window.setInterval(updateClock, 1000);
+})();
+`;
 ---
 
 <DashboardLayout title="Dashboard | OneThing" refreshSeconds={3600}>
   <h1 class="sr-only">OneThing Event Dashboard</h1>
 
-  <div class="dashboard-grid">
-    <section class="next-panel" aria-labelledby="next-event-title">
-      <div class="section-heading">
-        <p class="dashboard-kicker">Next Up</p>
-        <h2 id="next-event-title">次のイベント</h2>
-      </div>
-
-      {
-        featuredEvent ? (
-          <article class={`feature-event feature-event--${featuredEvent.kind}`}>
-            <div class="feature-date">
-              <span>{formatRelativeDay(featuredEvent, dashboard.fetchedAt)}</span>
-              <strong>{formatDateLabel(featuredEvent.start)}</strong>
-              <small>{formatWeekday(featuredEvent.start)}</small>
-            </div>
-            <div class="feature-body">
-              <h3>{formatDisplaySummary(featuredEvent.summary)}</h3>
-              <p class="event-time">{formatTimeRange(featuredEvent)} / {formatDuration(featuredEvent)}</p>
-              <p class="event-location">{featuredEvent.locationShort}</p>
-              {featuredEvent.shortDescription && <p class="event-description">{featuredEvent.shortDescription}</p>}
-              {featuredEvent.url && (
-                <div class="feature-actions">
-                  <a class="dashboard-button" href={featuredEvent.url}>イベントページ</a>
-                </div>
-              )}
-            </div>
-          </article>
-        ) : (
-          <div class="empty-state">
-            <h3>
-              <span>Coming</span>
-              <span>Soon</span>
-            </h3>
-          </div>
-        )
-      }
-    </section>
-
-    <section class="agenda-panel" aria-labelledby="agenda-title">
-      <div class="section-heading section-heading--row">
-        <div>
-          <p class="dashboard-kicker">Timeline</p>
-          <h2 id="agenda-title">今後の予定</h2>
+  <section class="dash-root" aria-label="OneThing dashboard">
+    <div class="dash-container">
+      <header class="dash-header">
+        <div class="dash-header-left">
+          <h2 class="dash-title">OneThing</h2>
         </div>
-        <span>{dashboard.allEventCount}件</span>
+        <div class="dash-header-right">
+          <time class="dash-clock" data-dashboard-clock datetime={dashboard.fetchedAt.toISOString()}>
+            {clockFormatter.format(dashboard.fetchedAt)}
+          </time>
+          <time class="dash-date" data-dashboard-date datetime={dashboard.fetchedAt.toISOString()}>
+            {dateFormatter.format(dashboard.fetchedAt)}
+          </time>
+        </div>
+      </header>
+
+      <div class="dash-main">
+        <section class="dash-view active" aria-labelledby="next-event-title">
+          <div class="dash-view-title">次のイベント</div>
+
+          {
+            featuredEvent ? (
+              <>
+                <div class="dash-presence-summary dash-event-summary">
+                  <time class="dash-next-date" datetime={featuredEvent.start.toISOString()}>
+                    <span>{monthNumberFormatter.format(featuredEvent.start)}/</span>
+                    <strong>{dayFormatter.format(featuredEvent.start)}</strong>
+                  </time>
+                  <div class="dash-next-calendar">
+                    <strong>{formatWeekday(featuredEvent.start)}</strong>
+                  </div>
+                  <div class="dash-event-heading">
+                    <h2 id="next-event-title" class="dash-event-title">
+                      {formatDisplaySummary(featuredEvent.summary)}
+                    </h2>
+                  </div>
+                  <div class="dash-relative-day">{formatRelativeDay(featuredEvent, dashboard.fetchedAt)}</div>
+                </div>
+
+                <div class="dash-event-info-grid">
+                  <article class="dash-event-info-card dash-event-info-card--time">
+                    <span>時間</span>
+                    <strong>{formatTimeRange(featuredEvent)}</strong>
+                  </article>
+
+                  <article class="dash-event-info-card dash-event-info-card--place">
+                    <span>場所</span>
+                    <strong>{featuredEvent.locationShort}</strong>
+                  </article>
+                </div>
+
+                {featuredEvent.shortDescription && (
+                  <p class="dash-presence-card dash-event-description">{featuredEvent.shortDescription}</p>
+                )}
+              </>
+            ) : (
+              <div class="dash-empty">
+                <div class="dash-empty-text">予定されているイベントはありません</div>
+              </div>
+            )
+          }
+
+          <div class="dash-agenda-header">
+            <div class="dash-view-title dash-agenda-title">今後の予定</div>
+            <div class="dash-agenda-count">全{dashboard.allEventCount}件 / 今週{weekEventCount}件</div>
+          </div>
+
+          {
+            dashboard.fetchError ? (
+              <p class="dash-message-error">カレンダーの取得に失敗しました: {dashboard.fetchError}</p>
+            ) : agendaEvents.length > 0 ? (
+              <div class="dash-timeline-list dash-agenda-list">
+                {agendaEvents.map((event) => (
+                  <article class="dash-timeline-row dash-event-row">
+                    <time class="dash-timeline-name" datetime={event.start.toISOString()}>
+                      {formatDateLabel(event.start)} {formatWeekday(event.start)}
+                    </time>
+                    <div class="dash-event-row-body">
+                      <h3>{formatDisplaySummary(event.summary)}</h3>
+                      <p>{event.locationShort}</p>
+                    </div>
+                    <div class="dash-timeline-duration">{formatTimeRange(event)}</div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div class="dash-empty dash-agenda-empty">
+                <div class="dash-empty-text">この後の予定はありません</div>
+              </div>
+            )
+          }
+        </section>
       </div>
 
-      {
-        dashboard.fetchError ? (
-          <p class="dashboard-alert">カレンダーの取得に失敗しました: {dashboard.fetchError}</p>
-        ) : (
-          <div class="event-list">
-            {events.map((event) => (
-              <article class={`event-row event-row--${event.kind}`}>
-                <time class="event-row-date" datetime={event.start.toISOString()}>
-                  <strong>{formatDateLabel(event.start)}</strong>
-                  <span>{formatWeekday(event.start)}</span>
-                </time>
-                <div class="event-row-body">
-                  <div class="event-row-meta">
-                    <span>{formatRelativeDay(event, dashboard.fetchedAt)}</span>
-                    <span>{formatTimeRange(event)}</span>
-                  </div>
-                  <h3>{formatDisplaySummary(event.summary)}</h3>
-                  <p>{event.locationShort}</p>
-                </div>
-                {event.url && <a class="event-row-link" href={event.url} aria-label={`${event.summary}のイベントページへ`}>↗</a>}
-              </article>
-            ))}
-          </div>
-        )
-      }
-    </section>
-  </div>
+      <footer class="dash-footer">
+        <div class="dash-dots" aria-hidden="true">
+          <span class="dash-dot active"></span>
+        </div>
+        <div class="dash-footer-info">
+          最終更新 {formatFetchedAt(dashboard.fetchedAt)}
+          <a href={dashboard.sourceUrl} class="dash-back-link">ICS</a>
+        </div>
+      </footer>
+    </div>
+  </section>
 
-  <p class="dashboard-sync">
-    <span>Last Sync</span>
-    <time datetime={dashboard.fetchedAt.toISOString()}>{formatFetchedAt(dashboard.fetchedAt)}</time>
-    <a href={dashboard.sourceUrl}>ICS</a>
-  </p>
+  <script is:inline set:html={clockScript}></script>
 </DashboardLayout>

@@ -1,7 +1,6 @@
 ---
 import '../styles/global.css';
 import '../styles/dashboard.css';
-import DashboardDesignSwitcher from '../components/DashboardDesignSwitcher.astro';
 
 interface Props {
   title: string;
@@ -9,6 +8,8 @@ interface Props {
 }
 
 const { title, refreshSeconds } = Astro.props;
+const refreshDelayMs = refreshSeconds ? refreshSeconds * 1000 : 0;
+const refreshScript = `window.setTimeout(() => window.location.reload(), ${refreshDelayMs});`;
 ---
 
 <!doctype html>
@@ -23,6 +24,6 @@ const { title, refreshSeconds } = Astro.props;
     <main class="dashboard-main">
       <slot />
     </main>
-    <DashboardDesignSwitcher refreshSeconds={refreshSeconds} />
+    {refreshDelayMs > 0 && <script is:inline set:html={refreshScript}></script>}
   </body>
 </html>
