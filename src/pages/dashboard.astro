@@ -25,7 +25,7 @@ const clockFormatter = new Intl.DateTimeFormat('ja-JP', {
   minute: '2-digit',
   hourCycle: 'h23',
 });
-const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
+const datePartsFormatter = new Intl.DateTimeFormat('ja-JP', {
   timeZone: tokyoTimeZone,
   year: 'numeric',
   month: 'numeric',
@@ -42,6 +42,12 @@ const dayFormatter = new Intl.DateTimeFormat('en-US', {
 });
 
 const formatDisplaySummary = (summary: string) => summary.replace(/\s+(#\d+)/, '\u00a0$1');
+const formatDashboardDate = (date: Date) => {
+  const parts = datePartsFormatter.formatToParts(date);
+  const getPart = (type: string) => parts.find((part) => part.type === type)?.value ?? '';
+
+  return `${getPart('year')}/${getPart('month')}/${getPart('day')}（${getPart('weekday')}）`;
+};
 const clockScript = `
 (() => {
   const clock = document.querySelector('[data-dashboard-clock]');
@@ -52,13 +58,19 @@ const clockScript = `
     minute: '2-digit',
     hourCycle: 'h23',
   });
-  const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
+  const datePartsFormatter = new Intl.DateTimeFormat('ja-JP', {
     timeZone: 'Asia/Tokyo',
     year: 'numeric',
     month: 'numeric',
     day: 'numeric',
     weekday: 'short',
   });
+  const formatDashboardDate = (value) => {
+    const parts = datePartsFormatter.formatToParts(value);
+    const getPart = (type) => parts.find((part) => part.type === type)?.value ?? '';
+
+    return \`\${getPart('year')}/\${getPart('month')}/\${getPart('day')}（\${getPart('weekday')}）\`;
+  };
   const updateClock = () => {
     const now = new Date();
     if (clock) {
@@ -66,7 +78,7 @@ const clockScript = `
       clock.setAttribute('datetime', now.toISOString());
     }
     if (date) {
-      date.textContent = dateFormatter.format(now);
+      date.textContent = formatDashboardDate(now);
       date.setAttribute('datetime', now.toISOString());
     }
   };
@@ -91,7 +103,7 @@ const clockScript = `
             {clockFormatter.format(dashboard.fetchedAt)}
           </time>
           <time class="dash-date" data-dashboard-date datetime={dashboard.fetchedAt.toISOString()}>
-            {dateFormatter.format(dashboard.fetchedAt)}
+            {formatDashboardDate(dashboard.fetchedAt)}
           </time>
         </div>
       </header>
@@ -142,6 +154,8 @@ const clockScript = `
             )
           }
 
+          {featuredEvent && <div class="dash-schedule-separator" aria-hidden="true"></div>}
+
           <div class="dash-agenda-header">
             <div class="dash-view-title dash-agenda-title">今後の予定</div>
             <div class="dash-agenda-count">全{dashboard.allEventCount}件 / 今週{weekEventCount}件</div>
@@ -157,11 +171,11 @@ const clockScript = `
                     <time class="dash-timeline-name" datetime={event.start.toISOString()}>
                       {formatDateLabel(event.start)} {formatWeekday(event.start)}
                     </time>
+                    <div class="dash-timeline-duration">{formatTimeRange(event)}</div>
                     <div class="dash-event-row-body">
                       <h3>{formatDisplaySummary(event.summary)}</h3>
                       <p>{event.locationShort}</p>
                     </div>
-                    <div class="dash-timeline-duration">{formatTimeRange(event)}</div>
                   </article>
                 ))}
               </div>

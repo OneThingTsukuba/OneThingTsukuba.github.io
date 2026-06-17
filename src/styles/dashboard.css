@@ -132,16 +132,17 @@
 }
 
 .dash-next-date span {
-  color: #8888a0;
+  color: #9c96ff;
   font-size: 3.1rem;
   font-weight: 700;
 }
 
 .dash-next-date strong {
-  color: #6c63ff;
+  color: #2ee89e;
   font-size: 7.8rem;
   font-weight: 800;
   line-height: 0.9;
+  text-shadow: 0 0 22px rgba(46, 232, 158, 0.18);
 }
 
 .dash-next-calendar {
@@ -201,8 +202,8 @@
   gap: 8px;
   padding: 22px 26px;
   border-radius: 16px;
-  background: #1a1a24;
-  border: 1px solid transparent;
+  background: #232436;
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .dash-event-info-card:hover {
@@ -227,7 +228,7 @@
 }
 
 .dash-presence-card {
-  background: #1a1a24;
+  background: #232436;
   border-radius: 16px;
   padding: 20px 24px;
   display: flex;
@@ -250,6 +251,21 @@
   line-height: 1.6;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.dash-schedule-separator {
+  position: relative;
+  height: 10px;
+  margin: 30px 0 22px 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7a72ff, #2ee89e);
+  box-shadow:
+    0 0 24px rgba(122, 114, 255, 0.28),
+    0 0 32px rgba(46, 232, 158, 0.2);
+}
+
+.dash-schedule-separator + .dash-agenda-header {
+  margin-top: 0;
 }
 
 .dash-agenda-header {
@@ -288,13 +304,13 @@
   grid-template-columns: 100px 1fr 80px;
   gap: 16px;
   align-items: center;
-  background: #1a1a24;
+  background: #222438;
   border-radius: 12px;
   padding: 14px 20px;
 }
 
 .dash-event-row {
-  grid-template-columns: 110px minmax(0, 1fr) 148px;
+  grid-template-columns: 110px 150px minmax(0, 1fr);
   min-height: 76px;
 }
 
@@ -337,6 +353,10 @@
   text-align: right;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+}
+
+.dash-event-row .dash-timeline-duration {
+  text-align: left;
 }
 
 .dash-empty {
