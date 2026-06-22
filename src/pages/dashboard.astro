@@ -12,11 +12,29 @@ import {
 const dashboard = await getCalendarDashboard(8);
 const events = dashboard.events;
 const featuredEvent = events[0] ?? null;
-const agendaEvents = featuredEvent ? events.slice(1, 6) : events.slice(0, 5);
-const weekEventCount = events.filter((event) => {
-  const weekLater = dashboard.fetchedAt.getTime() + 7 * 24 * 60 * 60 * 1000;
-  return event.start.getTime() <= weekLater;
-}).length;
+const upcomingVisibleLimit = 4;
+const upcomingSources = [
+  {
+    id: 'onething',
+    name: 'OneThing',
+  },
+  {
+    id: 'startix',
+    name: 'STARTiX',
+  },
+] as const;
+const upcomingColumns = upcomingSources.map((source) => {
+  const sourceEvents = dashboard.eventsBySource[source.id].filter((event) => event.uid !== featuredEvent?.uid);
+  const visibleEvents = sourceEvents.slice(0, upcomingVisibleLimit);
+
+  return {
+    ...source,
+    events: visibleEvents,
+    sourceEventCount: sourceEvents.length,
+    hiddenEventCount: Math.max(0, sourceEvents.length - visibleEvents.length),
+  };
+});
+const hasUpcomingEvents = upcomingColumns.some((column) => column.sourceEventCount > 0);
 
 const tokyoTimeZone = 'Asia/Tokyo';
 const clockFormatter = new Intl.DateTimeFormat('ja-JP', {
@@ -42,6 +60,10 @@ const dayFormatter = new Intl.DateTimeFormat('en-US', {
 });
 
 const formatDisplaySummary = (summary: string) => summary.replace(/\s+(#\d+)/, '\u00a0$1');
+const getSourceBadgeClass = (sourceId: string, variant?: string) =>
+  ['dash-source-badge', variant ? `dash-source-badge--${variant}` : '', `dash-source-badge--${sourceId}`]
+    .filter(Boolean)
+    .join(' ');
 const formatDashboardDate = (date: Date) => {
   const parts = datePartsFormatter.formatToParts(date);
   const getPart = (type: string) => parts.find((part) => part.type === type)?.value ?? '';
@@ -128,7 +150,12 @@ const clockScript = `
                       {formatDisplaySummary(featuredEvent.summary)}
                     </h2>
                   </div>
-                  <div class="dash-relative-day">{formatRelativeDay(featuredEvent, dashboard.fetchedAt)}</div>
+                  <div class="dash-event-meta">
+                    <span class={getSourceBadgeClass(featuredEvent.source.id, 'featured')}>
+                      {featuredEvent.source.name}
+                    </span>
+                    <div class="dash-relative-day">{formatRelativeDay(featuredEvent, dashboard.fetchedAt)}</div>
+                  </div>
                 </div>
 
                 <div class="dash-event-info-grid">
@@ -156,31 +183,53 @@ const clockScript = `
 
           {featuredEvent && <div class="dash-schedule-separator" aria-hidden="true"></div>}
 
-          <div class="dash-agenda-header">
-            <div class="dash-view-title dash-agenda-title">今後の予定</div>
-            <div class="dash-agenda-count">全{dashboard.allEventCount}件 / 今週{weekEventCount}件</div>
-          </div>
-
           {
             dashboard.fetchError ? (
               <p class="dash-message-error">カレンダーの取得に失敗しました: {dashboard.fetchError}</p>
-            ) : agendaEvents.length > 0 ? (
-              <div class="dash-timeline-list dash-agenda-list">
-                {agendaEvents.map((event) => (
-                  <article class="dash-timeline-row dash-event-row">
-                    <time class="dash-timeline-name" datetime={event.start.toISOString()}>
-                      {formatDateLabel(event.start)} {formatWeekday(event.start)}
-                    </time>
-                    <div class="dash-timeline-duration">{formatTimeRange(event)}</div>
-                    <div class="dash-event-row-body">
-                      <h3>{formatDisplaySummary(event.summary)}</h3>
-                      <p>{event.locationShort}</p>
-                    </div>
-                  </article>
+            ) : null
+          }
+
+          {
+            hasUpcomingEvents ? (
+              <div class="dash-upcoming-columns">
+                {upcomingColumns.map((column) => (
+                  <section class="dash-upcoming-column" aria-labelledby={`dash-upcoming-${column.id}`}>
+                    <header class="dash-upcoming-column-header">
+                      <h3 id={`dash-upcoming-${column.id}`}>
+                        <span class={getSourceBadgeClass(column.id)}>{column.name}</span>
+                      </h3>
+                    </header>
+
+                    {column.events.length > 0 ? (
+                      <>
+                        <div class="dash-timeline-list dash-upcoming-list">
+                          {column.events.map((event) => (
+                            <article class="dash-timeline-row dash-event-row">
+                              <time class="dash-timeline-name" datetime={event.start.toISOString()}>
+                                {formatDateLabel(event.start)} {formatWeekday(event.start)}
+                              </time>
+                              <div class="dash-timeline-duration">{formatTimeRange(event)}</div>
+                              <div class="dash-event-row-body">
+                                <h3>{formatDisplaySummary(event.summary)}</h3>
+                                <p>{event.locationShort}</p>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                        {column.hiddenEventCount > 0 && (
+                          <div class="dash-upcoming-more">他{column.hiddenEventCount}件</div>
+                        )}
+                      </>
+                    ) : (
+                      <div class="dash-empty dash-upcoming-column-empty">
+                        <div class="dash-empty-text">この後の予定はありません</div>
+                      </div>
+                    )}
+                  </section>
                 ))}
               </div>
             ) : (
-              <div class="dash-empty dash-agenda-empty">
+              <div class="dash-empty dash-upcoming-empty">
                 <div class="dash-empty-text">この後の予定はありません</div>
               </div>
             )
@@ -194,7 +243,9 @@ const clockScript = `
         </div>
         <div class="dash-footer-info">
           最終更新 {formatFetchedAt(dashboard.fetchedAt)}
-          <a href={dashboard.sourceUrl} class="dash-back-link">ICS</a>
+          {dashboard.sources.map((source) => (
+            <a href={source.url} class="dash-back-link">{source.name} ICS</a>
+          ))}
         </div>
       </footer>
     </div>

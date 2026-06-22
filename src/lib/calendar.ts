@@ -1,5 +1,16 @@
 export type CalendarEventKind = 'mokumoku' | 'lt' | 'study' | 'project' | 'event';
 
+export type CalendarSourceId = 'onething' | 'startix';
+
+export type CalendarSource = {
+  id: CalendarSourceId;
+  name: string;
+  url: string;
+  color: string;
+};
+
+export type CalendarEventSource = Omit<CalendarSource, 'url'>;
+
 export type CalendarEvent = {
   uid: string;
   summary: string;
@@ -13,18 +24,47 @@ export type CalendarEvent = {
   kind: CalendarEventKind;
   statusLabel: string;
   url: string | null;
+  source: CalendarEventSource;
 };
 
 export type CalendarDashboard = {
   sourceUrl: string;
+  sources: CalendarSource[];
   fetchedAt: Date;
   events: CalendarEvent[];
+  eventsBySource: Record<CalendarSourceId, CalendarEvent[]>;
   allEventCount: number;
   fetchError: string | null;
+  fetchErrors: string[];
 };
 
-const CALENDAR_ICS_URL =
+const ONETHING_CALENDAR_ICS_URL =
   'https://calendar.google.com/calendar/ical/onething.tsukuba%40gmail.com/public/basic.ics';
+const DEFAULT_STARTIX_CALENDAR_ICS_URL =
+  'https://calendar.google.com/calendar/ical/startix.itf%40gmail.com/public/basic.ics';
+const STARTIX_CALENDAR_ICS_URL = (
+  import.meta.env.STARTIX_CALENDAR_ICS_URL ??
+  import.meta.env.PUBLIC_STARTIX_CALENDAR_ICS_URL ??
+  DEFAULT_STARTIX_CALENDAR_ICS_URL
+).trim();
+const CALENDAR_SOURCES: CalendarSource[] = [
+  {
+    id: 'onething',
+    name: 'OneThing',
+    url: ONETHING_CALENDAR_ICS_URL,
+    color: '#2ee89e',
+  },
+  ...(STARTIX_CALENDAR_ICS_URL
+    ? [
+        {
+          id: 'startix' as const,
+          name: 'STARTiX',
+          url: STARTIX_CALENDAR_ICS_URL,
+          color: '#ffb547',
+        },
+      ]
+    : []),
+];
 
 const TOKYO_TIME_ZONE = 'Asia/Tokyo';
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -45,36 +85,62 @@ export async function getCalendarDashboard(limit = 12): Promise<CalendarDashboar
 
 async function fetchCalendarDashboard(limit: number): Promise<CalendarDashboard> {
   const fetchedAt = new Date();
+  const sourceResults = await Promise.all(
+    CALENDAR_SOURCES.map((source) => fetchSourceCalendar(source, fetchedAt))
+  );
+  const fetchErrors = sourceResults.flatMap((result) => (result.error ? [result.error] : []));
+  const events = sourceResults
+    .flatMap((result) => result.events)
+    .filter((event) => event.end.getTime() >= fetchedAt.getTime())
+    .sort((a, b) => a.start.getTime() - b.start.getTime());
+  const eventsBySource: Record<CalendarSourceId, CalendarEvent[]> = {
+    onething: [],
+    startix: [],
+  };
 
+  for (const event of events) {
+    eventsBySource[event.source.id].push(event);
+  }
+
+  return {
+    sourceUrl: CALENDAR_SOURCES[0]?.url ?? '',
+    sources: CALENDAR_SOURCES,
+    fetchedAt,
+    events: events.slice(0, limit),
+    eventsBySource,
+    allEventCount: events.length,
+    fetchError: fetchErrors.length > 0 ? fetchErrors.join(' / ') : null,
+    fetchErrors,
+  };
+}
+
+async function fetchSourceCalendar(
+  source: CalendarSource,
+  fetchedAt: Date
+): Promise<{ source: CalendarSource; events: CalendarEvent[]; error: string | null }> {
   try {
-    const response = await fetch(CALENDAR_ICS_URL, { cache: 'no-store' });
+    const response = await fetch(source.url, { cache: 'no-store' });
 
     if (!response.ok) {
       throw new Error(`ICS request failed with ${response.status}`);
     }
 
     const ics = await response.text();
-    const events = parseCalendarEvents(ics, fetchedAt)
-      .filter((event) => event.end.getTime() >= fetchedAt.getTime())
-      .sort((a, b) => a.start.getTime() - b.start.getTime());
 
     return {
-      sourceUrl: CALENDAR_ICS_URL,
-      fetchedAt,
-      events: events.slice(0, limit),
-      allEventCount: events.length,
-      fetchError: null,
+      source,
+      events: parseCalendarEvents(ics, fetchedAt, source),
+      error: null,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown calendar error';
-    console.warn(`[calendar] ${message}`);
+    const sourceMessage = `${source.name}: ${message}`;
+    console.warn(`[calendar] ${sourceMessage}`);
 
     return {
-      sourceUrl: CALENDAR_ICS_URL,
-      fetchedAt,
+      source,
       events: [],
-      allEventCount: 0,
-      fetchError: message,
+      error: sourceMessage,
     };
   }
 }
@@ -166,9 +232,9 @@ export function formatFetchedAt(date: Date): string {
   }).format(date);
 }
 
-function parseCalendarEvents(ics: string, now: Date): CalendarEvent[] {
+function parseCalendarEvents(ics: string, now: Date, source: CalendarSource): CalendarEvent[] {
   return splitEvents(unfoldIcs(ics))
-    .map((lines) => parseEvent(lines, now))
+    .map((lines) => parseEvent(lines, now, source))
     .filter((event): event is CalendarEvent => event !== null);
 }
 
@@ -214,7 +280,7 @@ function splitEvents(lines: string[]): string[][] {
   return events;
 }
 
-function parseEvent(lines: string[], now: Date): CalendarEvent | null {
+function parseEvent(lines: string[], now: Date, source: CalendarSource): CalendarEvent | null {
   const fields = new Map<string, IcsField>();
   let status = 'CONFIRMED';
 
@@ -253,9 +319,10 @@ function parseEvent(lines: string[], now: Date): CalendarEvent | null {
   const description = cleanText(fields.get('DESCRIPTION')?.value ?? '');
   const location = cleanText(fields.get('LOCATION')?.value ?? '');
   const kind = classifyEvent(summary);
+  const rawUid = cleanText(fields.get('UID')?.value ?? `${summary}-${start.date.toISOString()}`);
 
   return {
-    uid: cleanText(fields.get('UID')?.value ?? `${summary}-${start.date.toISOString()}`),
+    uid: `${source.id}:${rawUid}`,
     summary,
     description,
     shortDescription: summarizeDescription(description),
@@ -267,6 +334,11 @@ function parseEvent(lines: string[], now: Date): CalendarEvent | null {
     kind,
     statusLabel: getStatusLabel(start.date, end, now),
     url: findEventUrl(description),
+    source: {
+      id: source.id,
+      name: source.name,
+      color: source.color,
+    },
   };
 }
 

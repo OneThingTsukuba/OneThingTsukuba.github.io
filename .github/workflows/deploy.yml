@@ -25,6 +25,8 @@ jobs:
 
       - name: Install, build, and upload site
         uses: withastro/action@v6
+        env:
+          STARTIX_CALENDAR_ICS_URL: ${{ vars.STARTIX_CALENDAR_ICS_URL }}
 
   deploy:
     needs: build

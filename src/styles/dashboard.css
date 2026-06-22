@@ -168,6 +168,42 @@
   min-width: 0;
 }
 
+.dash-source-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 5px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dash-source-badge--onething {
+  border-color: rgba(46, 232, 158, 0.34);
+  background: rgba(46, 232, 158, 0.1);
+  color: #64f4b9;
+}
+
+.dash-source-badge--startix {
+  border-color: rgba(255, 181, 71, 0.38);
+  background: rgba(255, 181, 71, 0.12);
+  color: #ffcf79;
+}
+
+.dash-source-badge--featured {
+  min-height: 38px;
+  padding: 8px 15px;
+  border-radius: 10px;
+  font-size: 0.98rem;
+  letter-spacing: 0;
+}
+
 .dash-event-title {
   display: -webkit-box;
   overflow: hidden;
@@ -181,10 +217,17 @@
   -webkit-line-clamp: 2;
 }
 
-.dash-relative-day {
+.dash-event-meta {
   align-self: center;
   justify-self: end;
-  width: 148px;
+  display: flex;
+  width: 160px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.dash-relative-day {
   color: #2ee89e;
   font-size: 1.2rem;
   font-weight: 700;
@@ -260,39 +303,12 @@
 .dash-schedule-separator {
   position: relative;
   height: 10px;
-  margin: 30px 0 22px 0;
+  margin: 30px 0 22px;
   border-radius: 999px;
   background: linear-gradient(90deg, #7a72ff, #2ee89e);
   box-shadow:
     0 0 24px rgba(122, 114, 255, 0.28),
     0 0 32px rgba(46, 232, 158, 0.2);
-}
-
-.dash-schedule-separator + .dash-agenda-header {
-  margin-top: 0;
-}
-
-.dash-agenda-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 148px;
-  align-items: center;
-  gap: 16px;
-  margin-top: 22px;
-  padding-right: 20px;
-}
-
-.dash-agenda-title {
-  margin-bottom: 16px;
-}
-
-.dash-agenda-count {
-  align-self: start;
-  color: #8888a0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  line-height: 1.1;
-  text-align: right;
-  white-space: nowrap;
 }
 
 .dash-timeline-list {
@@ -301,6 +317,36 @@
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
+}
+
+.dash-upcoming-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  flex: 1;
+  min-height: 0;
+}
+
+.dash-upcoming-column {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.dash-upcoming-list {
+  flex: 0 0 auto;
+}
+
+.dash-upcoming-column-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.dash-upcoming-column-header h3 {
+  margin: 0;
+  line-height: 1;
 }
 
 .dash-timeline-row {
@@ -318,6 +364,21 @@
   min-height: 76px;
 }
 
+.dash-upcoming-column .dash-event-row {
+  grid-template-columns: 84px 104px minmax(0, 1fr);
+  gap: 10px;
+  padding: 13px 14px;
+}
+
+.dash-upcoming-more {
+  margin-top: 10px;
+  padding-right: 14px;
+  color: #a0a0b8;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: right;
+}
+
 .dash-timeline-name {
   font-weight: 600;
   font-size: 1rem;
@@ -330,6 +391,10 @@
   min-width: 0;
 }
 
+.dash-upcoming-column .dash-event-row-body {
+  margin-left: 40px;
+}
+
 .dash-event-row-body h3 {
   overflow: hidden;
   margin: 0 0 4px;
@@ -339,6 +404,17 @@
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.dash-upcoming-column-empty {
+  min-height: 140px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.dash-upcoming-column-empty .dash-empty-text {
+  font-size: 1rem;
 }
 
 .dash-event-row-body p {
@@ -378,7 +454,7 @@
 }
 
 .dash-message-error {
-  margin: 0;
+  margin: 0 0 12px;
   padding: 14px 18px;
   border-radius: 12px;
   background: #1a1a24;
