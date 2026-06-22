@@ -407,10 +407,10 @@
 }
 
 .dash-upcoming-column-empty {
-  min-height: 140px;
-  border: 1px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  flex: 0 0 76px;
+  min-height: 76px;
+  border: 0;
+  background: transparent;
 }
 
 .dash-upcoming-column-empty .dash-empty-text {

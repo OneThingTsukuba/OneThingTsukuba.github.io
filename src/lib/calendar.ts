@@ -38,15 +38,14 @@ export type CalendarDashboard = {
   fetchErrors: string[];
 };
 
+type CalendarDashboardOptions = {
+  sourceIds?: CalendarSourceId[];
+};
+
 const ONETHING_CALENDAR_ICS_URL =
   'https://calendar.google.com/calendar/ical/onething.tsukuba%40gmail.com/public/basic.ics';
-const DEFAULT_STARTIX_CALENDAR_ICS_URL =
+const STARTIX_CALENDAR_ICS_URL =
   'https://calendar.google.com/calendar/ical/startix.itf%40gmail.com/public/basic.ics';
-const STARTIX_CALENDAR_ICS_URL = (
-  import.meta.env.STARTIX_CALENDAR_ICS_URL ??
-  import.meta.env.PUBLIC_STARTIX_CALENDAR_ICS_URL ??
-  DEFAULT_STARTIX_CALENDAR_ICS_URL
-).trim();
 const CALENDAR_SOURCES: CalendarSource[] = [
   {
     id: 'onething',
@@ -54,39 +53,41 @@ const CALENDAR_SOURCES: CalendarSource[] = [
     url: ONETHING_CALENDAR_ICS_URL,
     color: '#2ee89e',
   },
-  ...(STARTIX_CALENDAR_ICS_URL
-    ? [
-        {
-          id: 'startix' as const,
-          name: 'STARTiX',
-          url: STARTIX_CALENDAR_ICS_URL,
-          color: '#ffb547',
-        },
-      ]
-    : []),
+  {
+    id: 'startix',
+    name: 'STARTiX',
+    url: STARTIX_CALENDAR_ICS_URL,
+    color: '#ffb547',
+  },
 ];
 
 const TOKYO_TIME_ZONE = 'Asia/Tokyo';
 const DAY_MS = 24 * 60 * 60 * 1000;
-const dashboardCache = new Map<number, Promise<CalendarDashboard>>();
+const dashboardCache = new Map<string, Promise<CalendarDashboard>>();
 
-export async function getCalendarDashboard(limit = 12): Promise<CalendarDashboard> {
-  const cachedDashboard = dashboardCache.get(limit);
+export async function getCalendarDashboard(
+  limit = 12,
+  options: CalendarDashboardOptions = {}
+): Promise<CalendarDashboard> {
+  const sourceIds = options.sourceIds ?? CALENDAR_SOURCES.map((source) => source.id);
+  const cacheKey = `${limit}:${sourceIds.join(',')}`;
+  const cachedDashboard = dashboardCache.get(cacheKey);
 
   if (cachedDashboard) {
     return cachedDashboard;
   }
 
-  const dashboardPromise = fetchCalendarDashboard(limit);
-  dashboardCache.set(limit, dashboardPromise);
+  const dashboardPromise = fetchCalendarDashboard(limit, sourceIds);
+  dashboardCache.set(cacheKey, dashboardPromise);
 
   return dashboardPromise;
 }
 
-async function fetchCalendarDashboard(limit: number): Promise<CalendarDashboard> {
+async function fetchCalendarDashboard(limit: number, sourceIds: CalendarSourceId[]): Promise<CalendarDashboard> {
   const fetchedAt = new Date();
+  const selectedSources = CALENDAR_SOURCES.filter((source) => sourceIds.includes(source.id));
   const sourceResults = await Promise.all(
-    CALENDAR_SOURCES.map((source) => fetchSourceCalendar(source, fetchedAt))
+    selectedSources.map((source) => fetchSourceCalendar(source, fetchedAt))
   );
   const fetchErrors = sourceResults.flatMap((result) => (result.error ? [result.error] : []));
   const events = sourceResults
@@ -103,8 +104,8 @@ async function fetchCalendarDashboard(limit: number): Promise<CalendarDashboard>
   }
 
   return {
-    sourceUrl: CALENDAR_SOURCES[0]?.url ?? '',
-    sources: CALENDAR_SOURCES,
+    sourceUrl: selectedSources[0]?.url ?? '',
+    sources: selectedSources,
     fetchedAt,
     events: events.slice(0, limit),
     eventsBySource,

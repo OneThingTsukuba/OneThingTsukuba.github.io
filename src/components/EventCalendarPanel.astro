@@ -1,0 +1,144 @@
+---
+import {
+  formatDateLabel,
+  formatFetchedAt,
+  formatRelativeDay,
+  formatTimeRange,
+  formatWeekday,
+  getCalendarDashboard,
+} from '../lib/calendar';
+
+type CalendarVariant = 'overview' | 'detail';
+
+interface Props {
+  variant?: CalendarVariant;
+  heading?: string;
+  headingId?: string;
+  limit?: number;
+}
+
+const {
+  variant = 'overview',
+  heading,
+  headingId = `event-calendar-${variant}`,
+  limit,
+} = Astro.props;
+const isDetail = variant === 'detail';
+const dashboard = await getCalendarDashboard(limit ?? (isDetail ? 14 : 5), { sourceIds: ['onething'] });
+const events = dashboard.events;
+const featuredEvent = events[0] ?? null;
+const listLimit = isDetail ? 12 : 3;
+const listedEvents = events.slice(featuredEvent ? 1 : 0, featuredEvent ? listLimit + 1 : listLimit);
+const visibleEventCount = (featuredEvent ? 1 : 0) + listedEvents.length;
+const hiddenEventCount = Math.max(0, dashboard.allEventCount - visibleEventCount);
+const calendarHeading = heading ?? (isDetail ? 'OneThing 活動カレンダー' : '直近の活動予定');
+const rootClass = `event-calendar event-calendar--${variant}`;
+
+const monthNumberFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Asia/Tokyo',
+  month: 'numeric',
+});
+const dayFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Asia/Tokyo',
+  day: '2-digit',
+});
+const formatDisplaySummary = (summary: string) => summary.replace(/\s+(#\d+)/, '\u00a0$1');
+---
+
+<div class={rootClass} aria-labelledby={headingId}>
+  <header class="event-calendar-header">
+    <div class="event-calendar-heading">
+      <h3 id={headingId}>{calendarHeading}</h3>
+    </div>
+    <div class="event-calendar-updated">
+      <span>最終更新</span>
+      <time datetime={dashboard.fetchedAt.toISOString()}>{formatFetchedAt(dashboard.fetchedAt)}</time>
+    </div>
+  </header>
+
+  {
+    dashboard.fetchError ? (
+      <p class="event-calendar-error">カレンダーの取得に失敗しました: {dashboard.fetchError}</p>
+    ) : null
+  }
+
+  {
+    featuredEvent ? (
+      <div class="event-calendar-layout">
+        <article class="event-calendar-featured" aria-labelledby={`${headingId}-featured-title`}>
+          <div class="event-calendar-featured-date">
+            <time datetime={featuredEvent.start.toISOString()}>
+              <span>{monthNumberFormatter.format(featuredEvent.start)}/</span>
+              <strong>{dayFormatter.format(featuredEvent.start)}</strong>
+            </time>
+            <div>{formatWeekday(featuredEvent.start)}</div>
+          </div>
+
+          <div class="event-calendar-featured-body">
+            <div class="event-calendar-featured-meta">
+              <span>{formatRelativeDay(featuredEvent, dashboard.fetchedAt)}</span>
+            </div>
+            <h4 id={`${headingId}-featured-title`}>{formatDisplaySummary(featuredEvent.summary)}</h4>
+
+            {featuredEvent.shortDescription && <p>{featuredEvent.shortDescription}</p>}
+
+            <dl class="event-calendar-facts">
+              <div>
+                <dt>時間</dt>
+                <dd>{formatTimeRange(featuredEvent)}</dd>
+              </div>
+              <div>
+                <dt>場所</dt>
+                <dd>{featuredEvent.locationShort}</dd>
+              </div>
+            </dl>
+
+            {featuredEvent.url && (
+              <a class="event-calendar-action" href={featuredEvent.url}>イベントページ</a>
+            )}
+          </div>
+        </article>
+
+        <section class="event-calendar-upcoming" aria-labelledby={`${headingId}-upcoming-title`}>
+          <div class="event-calendar-upcoming-header">
+            <h4 id={`${headingId}-upcoming-title`}>今後の予定</h4>
+            {hiddenEventCount > 0 && <span>他{hiddenEventCount}件</span>}
+          </div>
+
+          {
+            listedEvents.length > 0 ? (
+              <div class="event-calendar-list">
+                {listedEvents.map((event) => (
+                  <article class="event-calendar-row">
+                    <time datetime={event.start.toISOString()}>
+                      <strong>{formatDateLabel(event.start)}</strong>
+                      <span>{formatWeekday(event.start)}</span>
+                    </time>
+                    <div class="event-calendar-row-time">{formatTimeRange(event)}</div>
+                    <div class="event-calendar-row-body">
+                      {event.url ? (
+                        <h5>
+                          <a href={event.url}>{formatDisplaySummary(event.summary)}</a>
+                        </h5>
+                      ) : (
+                        <h5>{formatDisplaySummary(event.summary)}</h5>
+                      )}
+                      <p>{event.locationShort}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div class="event-calendar-empty event-calendar-empty--list">この後の予定はありません</div>
+            )
+          }
+        </section>
+      </div>
+    ) : (
+      <div class="event-calendar-empty">
+        <strong>予定されているイベントはありません</strong>
+        <span>次の活動が決まり次第、ここに表示されます。</span>
+      </div>
+    )
+  }
+</div>
