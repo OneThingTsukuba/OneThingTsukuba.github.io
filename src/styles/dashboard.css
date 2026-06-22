@@ -580,31 +580,4 @@
     text-decoration: underline;
   }
 
-  .dash-container {
-    min-height: 100vh;
-  }
-
-  .dash-header,
-  .dash-event-summary,
-  .dash-footer {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .dash-header-right {
-    text-align: left;
-  }
-
-  .dash-view {
-    position: static;
-    overflow: visible;
-  }
-
-  .dash-event-row {
-    grid-template-columns: 1fr;
-  }
-
-  .dash-timeline-duration {
-    text-align: left;
-  }
 }
