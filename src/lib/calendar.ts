@@ -215,7 +215,7 @@ export function formatRelativeDay(event: CalendarEvent, now = new Date()): strin
 
   const diffDays = Math.ceil((startOfJstDay(event.start).getTime() - startOfJstDay(now).getTime()) / DAY_MS);
 
-  if (diffDays > 0 && diffDays < 7) {
+  if (diffDays > 0) {
     return `${diffDays}日後`;
   }
 

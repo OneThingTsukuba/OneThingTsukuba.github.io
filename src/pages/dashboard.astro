@@ -1,5 +1,9 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import EventFeature from '../components/EventFeature.astro';
+import OrgEventView from '../components/OrgEventView.astro';
+import oneThingLogo from '../../img/OneThing.jpg';
+import startixLogo from '../../img/STARTiX.jpg';
 import {
   formatDateLabel,
   formatFetchedAt,
@@ -8,6 +12,13 @@ import {
   formatWeekday,
   getCalendarDashboard,
 } from '../lib/calendar';
+
+// Local-only page. On the deployed site (GitHub Actions build) it must not be
+// reachable, so redirect to the top page. Locally (astro dev / local build)
+// GITHUB_ACTIONS is unset, so the dashboard renders normally.
+if (process.env.GITHUB_ACTIONS) {
+  return Astro.redirect('/');
+}
 
 const dashboard = await getCalendarDashboard(8);
 const events = dashboard.events;
@@ -109,16 +120,119 @@ const clockScript = `
   window.setInterval(updateClock, 1000);
 })();
 `;
+// Drives the decorative top progress bar, synced to the wall clock: width is
+// the elapsed fraction of the current minute, so it hits 0% the instant the
+// minute changes and 100% as it rolls over (in step with the clock display).
+// 1-minute cycle. When view rotation is added later, swap this for progress
+// synced to the active-view switch.
+const progressScript = `
+(() => {
+  const bar = document.querySelector('[data-dashboard-progress]');
+  if (!bar) return;
+  const update = () => {
+    const now = new Date();
+    const fraction = (now.getSeconds() + now.getMilliseconds() / 1000) / 60;
+    bar.style.width = fraction * 100 + '%';
+  };
+  update();
+  window.setInterval(update, 100);
+})();
+`;
+// View rotation, one_screen style: 結合ビュー → OneThing → STARTiX → ループ。
+// 自動送りは分が変わる瞬間(プログレスバーが一巡するタイミング)に同期。
+// ←/→ で前後送り、Space で次へ、p で自動送りの一時停止。
+const rotationScript = `
+(() => {
+  const views = Array.from(document.querySelectorAll('[data-dash-view]'));
+  const dots = Array.from(document.querySelectorAll('[data-dash-dot]'));
+  const pausedTag = document.querySelector('[data-dash-paused]');
+  const titleEl = document.querySelector('[data-dash-title]');
+  if (views.length === 0) return;
+
+  const titles = ['OneCalendar', 'OneThing', 'STARTiX'];
+  const hashIndex = { '#onething': 1, '#startix': 2 };
+  let current = hashIndex[window.location.hash] ?? 0;
+  let paused = false;
+
+  const render = () => {
+    views.forEach((view, i) => view.classList.toggle('active', i === current));
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === current);
+      dot.setAttribute('aria-current', i === current ? 'true' : 'false');
+    });
+    if (titleEl && titles[current]) titleEl.textContent = titles[current];
+    if (pausedTag) pausedTag.style.display = paused ? '' : 'none';
+  };
+
+  const go = (index) => { current = (index + views.length) % views.length; render(); };
+  const next = () => go(current + 1);
+  const prev = () => go(current - 1);
+
+  dots.forEach((dot, i) => dot.addEventListener('click', () => go(i)));
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight' || event.key === ' ') { event.preventDefault(); next(); }
+    else if (event.key === 'ArrowLeft') { event.preventDefault(); prev(); }
+    else if (event.key === 'p' || event.key === 'P') { paused = !paused; render(); }
+  });
+
+  let lastMinute = new Date().getMinutes();
+  window.setInterval(() => {
+    const minute = new Date().getMinutes();
+    if (minute !== lastMinute) {
+      lastMinute = minute;
+      if (!paused) next();
+    }
+  }, 200);
+
+  render();
+})();
+`;
+// Shrink-to-fit: keep long titles / place names on a single line by reducing the
+// font size until they fit, instead of wrapping or truncating with an ellipsis.
+const fitTextScript = `
+(() => {
+  const TARGETS = [
+    { selector: '.dash-event-title', min: 24 },
+    { selector: '.dash-event-info-card strong', min: 16 },
+    { selector: '.dash-event-row-body h3', min: 12 },
+  ];
+  const fit = (el, min) => {
+    el.style.fontSize = '';
+    let size = parseFloat(window.getComputedStyle(el).fontSize) || 16;
+    let guard = 0;
+    while (el.scrollWidth > el.clientWidth && size > min && guard < 400) {
+      size -= 1;
+      el.style.fontSize = size + 'px';
+      guard++;
+    }
+  };
+  const run = () => {
+    TARGETS.forEach((target) => {
+      document.querySelectorAll(target.selector).forEach((el) => fit(el, target.min));
+    });
+  };
+  run();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(run);
+  window.addEventListener('load', run);
+  window.addEventListener('resize', run);
+})();
+`;
 ---
 
 <DashboardLayout title="Dashboard | OneThing" refreshSeconds={3600}>
   <h1 class="sr-only">OneThing Event Dashboard</h1>
 
   <section class="dash-root" aria-label="OneThing dashboard">
+    <div class="dash-progress" data-dashboard-progress style="width: 0%"></div>
     <div class="dash-container">
       <header class="dash-header">
         <div class="dash-header-left">
-          <h2 class="dash-title">OneThing</h2>
+          <h2 class="dash-title" data-dash-title>OneCalendar</h2>
+          <span class="dash-live">
+            <span class="dash-live-dot"></span>
+            LIVE
+          </span>
         </div>
         <div class="dash-header-right">
           <time class="dash-clock" data-dashboard-clock datetime={dashboard.fetchedAt.toISOString()}>
@@ -131,55 +245,13 @@ const clockScript = `
       </header>
 
       <div class="dash-main">
-        <section class="dash-view active" aria-labelledby="next-event-title">
-          <div class="dash-view-title">次のイベント</div>
-
-          {
-            featuredEvent ? (
-              <>
-                <div class="dash-presence-summary dash-event-summary">
-                  <time class="dash-next-date" datetime={featuredEvent.start.toISOString()}>
-                    <span>{monthNumberFormatter.format(featuredEvent.start)}/</span>
-                    <strong>{dayFormatter.format(featuredEvent.start)}</strong>
-                  </time>
-                  <div class="dash-next-calendar">
-                    <strong>{formatWeekday(featuredEvent.start)}</strong>
-                  </div>
-                  <div class="dash-event-heading">
-                    <h2 id="next-event-title" class="dash-event-title">
-                      {formatDisplaySummary(featuredEvent.summary)}
-                    </h2>
-                  </div>
-                  <div class="dash-event-meta">
-                    <span class={getSourceBadgeClass(featuredEvent.source.id, 'featured')}>
-                      {featuredEvent.source.name}
-                    </span>
-                    <div class="dash-relative-day">{formatRelativeDay(featuredEvent, dashboard.fetchedAt)}</div>
-                  </div>
-                </div>
-
-                <div class="dash-event-info-grid">
-                  <article class="dash-event-info-card dash-event-info-card--time">
-                    <span>時間</span>
-                    <strong>{formatTimeRange(featuredEvent)}</strong>
-                  </article>
-
-                  <article class="dash-event-info-card dash-event-info-card--place">
-                    <span>場所</span>
-                    <strong>{featuredEvent.locationShort}</strong>
-                  </article>
-                </div>
-
-                {featuredEvent.shortDescription && (
-                  <p class="dash-presence-card dash-event-description">{featuredEvent.shortDescription}</p>
-                )}
-              </>
-            ) : (
-              <div class="dash-empty">
-                <div class="dash-empty-text">予定されているイベントはありません</div>
-              </div>
-            )
-          }
+        <section class="dash-view active" data-dash-view aria-labelledby="next-event-title">
+          <EventFeature
+            event={featuredEvent}
+            now={dashboard.fetchedAt}
+            titleLabel="次のイベント"
+            titleId="next-event-title"
+          />
 
           {featuredEvent && <div class="dash-schedule-separator" aria-hidden="true"></div>}
 
@@ -235,17 +307,37 @@ const clockScript = `
             )
           }
         </section>
+
+        <section class="dash-view" data-dash-view aria-labelledby="org-onething-next-title">
+          <OrgEventView
+            sourceId="onething"
+            sourceName="OneThing"
+            logoSrc={oneThingLogo.src}
+            events={dashboard.eventsBySource.onething}
+            now={dashboard.fetchedAt}
+          />
+        </section>
+
+        <section class="dash-view" data-dash-view aria-labelledby="org-startix-next-title">
+          <OrgEventView
+            sourceId="startix"
+            sourceName="STARTiX"
+            logoSrc={startixLogo.src}
+            events={dashboard.eventsBySource.startix}
+            now={dashboard.fetchedAt}
+          />
+        </section>
       </div>
 
       <footer class="dash-footer">
-        <div class="dash-dots" aria-hidden="true">
-          <span class="dash-dot active"></span>
+        <div class="dash-dots">
+          <button type="button" class="dash-dot active" data-dash-dot aria-label="結合ビュー"></button>
+          <button type="button" class="dash-dot" data-dash-dot aria-label="OneThing"></button>
+          <button type="button" class="dash-dot" data-dash-dot aria-label="STARTiX"></button>
         </div>
         <div class="dash-footer-info">
+          <span data-dash-paused style="display: none; margin-right: 8px;">⏸ 一時停止中</span>
           最終更新 {formatFetchedAt(dashboard.fetchedAt)}
-          {dashboard.sources.map((source) => (
-            <a href={source.url} class="dash-back-link">{source.name} ICS</a>
-          ))}
         </div>
       </footer>
     </div>
@@ -257,4 +349,7 @@ const clockScript = `
   </div>
 
   <script is:inline set:html={clockScript}></script>
+  <script is:inline set:html={progressScript}></script>
+  <script is:inline set:html={rotationScript}></script>
+  <script is:inline set:html={fitTextScript}></script>
 </DashboardLayout>

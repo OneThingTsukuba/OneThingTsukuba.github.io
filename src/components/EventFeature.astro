@@ -1,0 +1,79 @@
+---
+import { formatRelativeDay, formatTimeRange, formatWeekday } from '../lib/calendar';
+import type { CalendarEvent } from '../lib/calendar';
+
+interface Props {
+  event: CalendarEvent | null;
+  now: Date;
+  titleLabel?: string;
+  titleId?: string;
+  showSourceBadge?: boolean;
+}
+
+const { event, now, titleLabel = '次のイベント', titleId, showSourceBadge = true } = Astro.props;
+
+const tokyoTimeZone = 'Asia/Tokyo';
+const monthNumberFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: tokyoTimeZone,
+  month: 'numeric',
+});
+const dayFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: tokyoTimeZone,
+  day: '2-digit',
+});
+
+const formatDisplaySummary = (summary: string) => summary.replace(/\s+(#\d+)/, ' $1');
+const getSourceBadgeClass = (sourceId: string, variant?: string) =>
+  ['dash-source-badge', variant ? `dash-source-badge--${variant}` : '', `dash-source-badge--${sourceId}`]
+    .filter(Boolean)
+    .join(' ');
+---
+
+<div class="dash-view-title">{titleLabel}</div>
+
+{
+  event ? (
+    <>
+      <div class="dash-presence-summary dash-event-summary">
+        <time class="dash-next-date" datetime={event.start.toISOString()}>
+          <span>{monthNumberFormatter.format(event.start)}/</span>
+          <strong>{dayFormatter.format(event.start)}</strong>
+        </time>
+        <div class="dash-next-calendar">
+          <strong>{formatWeekday(event.start)}</strong>
+        </div>
+        <div class="dash-event-heading">
+          <h2 id={titleId} class="dash-event-title">
+            {formatDisplaySummary(event.summary)}
+          </h2>
+        </div>
+        <div class="dash-event-meta">
+          {showSourceBadge && (
+            <span class={getSourceBadgeClass(event.source.id, 'featured')}>{event.source.name}</span>
+          )}
+          <div class="dash-relative-day">{formatRelativeDay(event, now)}</div>
+        </div>
+      </div>
+
+      <div class="dash-event-info-grid">
+        <article class="dash-event-info-card dash-event-info-card--time">
+          <span>時間</span>
+          <strong>{formatTimeRange(event)}</strong>
+        </article>
+
+        <article class="dash-event-info-card dash-event-info-card--place">
+          <span>場所</span>
+          <strong>{event.locationShort}</strong>
+        </article>
+      </div>
+
+      {event.shortDescription && (
+        <p class="dash-presence-card dash-event-description">{event.shortDescription}</p>
+      )}
+    </>
+  ) : (
+    <div class="dash-empty">
+      <div class="dash-empty-text">予定されているイベントはありません</div>
+    </div>
+  )
+}
