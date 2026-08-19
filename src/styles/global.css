@@ -851,3 +851,26 @@ a:focus-visible {
 .post-updated {
   color: var(--accent-purple-soft);
 }
+
+/* 記事末尾の署名。誰が書いたかを明示する */
+.post-byline {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 0.94rem;
+  color: var(--muted);
+}
+
+.post-byline strong {
+  color: var(--ink);
+}
+
+/* 記事中の画像。横幅いっぱいまで、はみ出させない */
+.post-body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 28px 0 0;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}

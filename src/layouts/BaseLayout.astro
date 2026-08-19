@@ -34,6 +34,8 @@ const {
 
 // canonical は絶対URLでなければ意味がない。Astro.url はビルド時に astro.config の site を基準に解決される。
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? absoluteUrl('/')).toString();
+// フッターの年はビルド時に決まる。GitHub Actions が毎時ビルドしているので年をまたいでも追従する
+const currentYear = new Date().getFullYear();
 const ogImageUrl = absoluteUrl(ogImage);
 ---
 
@@ -106,7 +108,7 @@ const ogImageUrl = absoluteUrl(ogImage);
     </main>
 
     <footer class="site-footer">
-      <p>&copy; 2025 OneThing All Rights Reserved.</p>
+      <p>&copy; {currentYear} OneThing All Rights Reserved.</p>
     </footer>
   </body>
 </html>

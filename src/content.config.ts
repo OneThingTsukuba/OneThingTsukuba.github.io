@@ -16,6 +16,11 @@ const blog = defineCollection({
     updatedDate: z.coerce.date().optional(),
     // 紹介=OneThingの説明 / 開催報告=イベントの記録 / 解説=技術やノウハウ
     category: z.enum(['紹介', '開催報告', '解説']),
+    // 書いた人。記事末尾の署名と、構造化データの author に使う。
+    // 誰が書いたかを明示すると検索側の評価にも効くので、記事には必ず入れる
+    author: z.string(),
+    // 肩書き。「OneThing 代表」など。省略時は名前だけ出る
+    authorRole: z.string().optional(),
   }),
 });
 

@@ -27,10 +27,11 @@ const articleJsonLd = {
   ...(post.data.updatedDate ? { dateModified: post.data.updatedDate.toISOString() } : {}),
   // canonical と完全に一致させる。末尾スラッシュが無いと別URL扱いになる
   mainEntityOfPage: absoluteUrl(`/blog/${post.id}/`),
+  // 書いた個人を author にする。publisher は団体のまま
   author: {
-    '@type': 'Organization',
-    name: SITE_NAME_FULL,
-    url: absoluteUrl('/'),
+    '@type': 'Person',
+    name: post.data.author,
+    ...(post.data.authorRole ? { jobTitle: post.data.authorRole } : {}),
   },
   publisher: {
     '@type': 'Organization',
@@ -68,6 +69,10 @@ const articleJsonLd = {
     <div class="post-body">
       <Content />
     </div>
+
+    <p class="post-byline">
+      この記事は{post.data.authorRole ? ` ${post.data.authorRole}の` : ''}<strong>{post.data.author}</strong>が書きました。
+    </p>
 
     <p class="post-back"><a href="/blog">記事一覧に戻る</a></p>
   </article>
