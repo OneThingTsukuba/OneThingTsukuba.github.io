@@ -790,9 +790,18 @@ a:focus-visible {
   color: var(--ink);
 }
 
-.post-body p,
+.post-body p {
+  /* 段落どうしがくっついて読みにくかったので、行間より広い余白を明示する */
+  margin: 20px 0 0;
+  color: var(--muted);
+}
+
 .post-body li {
   color: var(--muted);
+}
+
+.post-body strong {
+  color: var(--ink);
 }
 
 .post-body ul,

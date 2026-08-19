@@ -25,7 +25,8 @@ const articleJsonLd = {
   description: post.data.description,
   datePublished: post.data.pubDate.toISOString(),
   ...(post.data.updatedDate ? { dateModified: post.data.updatedDate.toISOString() } : {}),
-  mainEntityOfPage: absoluteUrl(`/blog/${post.id}`),
+  // canonical と完全に一致させる。末尾スラッシュが無いと別URL扱いになる
+  mainEntityOfPage: absoluteUrl(`/blog/${post.id}/`),
   author: {
     '@type': 'Organization',
     name: SITE_NAME_FULL,
