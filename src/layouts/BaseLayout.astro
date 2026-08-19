@@ -66,6 +66,11 @@ const ogImageUrl = absoluteUrl(ogImage);
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#0f172a" />
 
+    <!-- Google Search Console の所有権確認。消すと登録が外れ、検索の数字が見えなくなる。
+         public/google7d2e18f9730f790c.html のファイル方式は所定の場所で見つからず失敗したため、
+         全ページに乗るタグ方式に切り替えた -->
+    <meta name="google-site-verification" content="GK9IpwWMj_L69LR9hhJU6OlizI9rS6RjJx1PAQpqzv0" />
+
     <!-- 各ページ固有の構造化データなどを差し込む口 -->
     <slot name="head" />
   </head>
