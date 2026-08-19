@@ -676,3 +676,45 @@ a:focus-visible {
   }
 
 }
+
+/* キーボード操作時だけ現れる本文スキップリンク。
+   マウス利用者には見えないが、Tab の1打目で必ず最初にフォーカスが当たる。 */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 12px 20px;
+  background: var(--accent-green);
+  color: #0f0f13;
+  font-weight: 700;
+  border-radius: 0 0 8px 0;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* よくある質問。FAQ の構造化データと同じ内容を人にも見せるための表示。
+   （JSON-LD だけ置いて画面に無い状態は Google のガイドライン違反になる） */
+.faq-list {
+  margin-top: 8px;
+}
+
+.faq-list dt {
+  margin-top: 22px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.faq-list dt::before {
+  content: 'Q. ';
+  color: var(--accent-green);
+}
+
+.faq-list dd {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.8;
+}

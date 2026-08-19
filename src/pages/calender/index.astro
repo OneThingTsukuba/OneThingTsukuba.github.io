@@ -6,12 +6,16 @@ const navItems = [
   { href: '/', label: 'トップ' },
   { href: '/calender', label: 'カレンダー' },
 ];
-
 ---
 
-<BaseLayout title="カレンダー | OneThing" navItems={navItems}>
+<BaseLayout
+  title="活動カレンダー｜OneThing 筑波大学エンジニアコミュニティ"
+  description="OneThing（筑波大学エンジニアコミュニティ）の活動カレンダー。もくもく会・LT会・勉強会の開催日時と会場を掲載しています。参加費無料、初心者歓迎。"
+  navItems={navItems}
+>
   <section>
     <h2>活動カレンダー</h2>
+    <p>もくもく会・LT会・勉強会の予定です。各イベントの詳細と申し込みはイベント一覧から確認できます。</p>
     <EventCalendarPanel variant="detail" heading="OneThing 活動カレンダー" headingId="calendar-page-events" />
   </section>
 </BaseLayout>

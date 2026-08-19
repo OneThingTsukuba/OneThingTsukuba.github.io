@@ -1,0 +1,49 @@
+# 全てのクローラを許可する。AIの学習用クローラ（GPTBot / ClaudeBot / CCBot 等）も含む。
+# これは初期値ではなく、選んだ結果。
+#
+# 理由: このサイトに非公開情報は無く、目的は「知られること」そのもの。
+# 学習を拒否して守れるものが無い一方、モデル内部に
+# 「筑波大学のエンジニアコミュニティ = OneThing」が載る可能性は残る。
+# 判断の経緯: Vault の 31-onething/02-運営のアイデア/AIO-SEOネクストアクション-onething-2026-08-19.md の D-1
+#
+# 方針を変えるときは、下の個別指定を Disallow に書き換えること。
+# （User-agent を名指しした group は * の group を上書きするので、
+#   個別指定にも必ず Allow / Disallow を書くこと。省略すると意図と違う挙動になる）
+
+User-agent: *
+Allow: /
+
+# AI検索（回答時にページを取りに来るボット）
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# AI学習用クローラ。上記の理由により、あえて許可している
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# ドメイン移管時はこの行も astro.config.mjs の site に合わせて更新すること
+Sitemap: https://onethingtsukuba.github.io/sitemap-index.xml
