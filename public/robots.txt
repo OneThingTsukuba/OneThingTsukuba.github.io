@@ -1,0 +1,5 @@
+# ドメイン移管時は下の Sitemap 行も astro.config.mjs の site に合わせて更新すること
+User-agent: *
+Allow: /
+
+Sitemap: https://onethingtsukuba.github.io/sitemap-index.xml

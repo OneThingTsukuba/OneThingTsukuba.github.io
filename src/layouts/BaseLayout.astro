@@ -1,5 +1,11 @@
 ---
 import '../styles/global.css';
+import {
+  SITE_NAME_FULL,
+  SITE_DESCRIPTION,
+  OG_IMAGE_PATH,
+  absoluteUrl,
+} from '../lib/site';
 
 type NavItem = {
   href: string;
@@ -7,11 +13,28 @@ type NavItem = {
 };
 
 interface Props {
+  /** <title> にそのまま入る文字列。検索結果の見出しになるので、キーワードを含めて30字前後に。 */
   title: string;
+  /** 検索結果とSNSカードの説明文。省略時はサイト既定を使う。 */
+  description?: string;
+  /** OGP画像のパス。省略時は共通のOGP画像。 */
+  ogImage?: string;
+  /** og:type。トップは website、記事ページは article。 */
+  ogType?: 'website' | 'article';
   navItems?: NavItem[];
 }
 
-const { title, navItems = [] } = Astro.props;
+const {
+  title,
+  description = SITE_DESCRIPTION,
+  ogImage = OG_IMAGE_PATH,
+  ogType = 'website',
+  navItems = [],
+} = Astro.props;
+
+// canonical は絶対URLでなければ意味がない。Astro.url はビルド時に astro.config の site を基準に解決される。
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? absoluteUrl('/')).toString();
+const ogImageUrl = absoluteUrl(ogImage);
 ---
 
 <!doctype html>
@@ -20,8 +43,35 @@ const { title, navItems = [] } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- OGP: X / LINE / Slack にURLを貼ったときのカード。ここが無いと白いリンクしか出ない -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE_NAME_FULL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="ja_JP" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@OneThingTsukuba" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#0f172a" />
+
+    <!-- 各ページ固有の構造化データなどを差し込む口 -->
+    <slot name="head" />
   </head>
   <body>
+    <a class="skip-link" href="#main">本文へスキップ</a>
+
     <header class="site-header">
       <h1 class="header-title">
         <span class="main-title">OneThing</span>
@@ -42,7 +92,7 @@ const { title, navItems = [] } = Astro.props;
       }
     </header>
 
-    <main class="site-main">
+    <main class="site-main" id="main">
       <slot />
     </main>
 
