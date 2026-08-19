@@ -1,0 +1,73 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE_NAME_FULL, absoluteUrl } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const formatDate = (date: Date) =>
+  `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+
+// 記事のリッチリザルト用。日付は ISO 8601 で渡す
+const articleJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.pubDate.toISOString(),
+  ...(post.data.updatedDate ? { dateModified: post.data.updatedDate.toISOString() } : {}),
+  mainEntityOfPage: absoluteUrl(`/blog/${post.id}`),
+  author: {
+    '@type': 'Organization',
+    name: SITE_NAME_FULL,
+    url: absoluteUrl('/'),
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE_NAME_FULL,
+    url: absoluteUrl('/'),
+  },
+};
+---
+
+<BaseLayout
+  title={`${post.data.title}｜OneThing 筑波大学エンジニアコミュニティ`}
+  description={post.data.description}
+  ogType="article"
+  navItems={[
+    { href: '/', label: 'トップ' },
+    { href: '/blog', label: '記事' },
+    { href: '/calender', label: 'カレンダー' },
+  ]}
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
+  </Fragment>
+
+  <article class="post">
+    <p class="post-back"><a href="/blog">記事一覧に戻る</a></p>
+
+    <span class="post-meta">
+      <span class="post-category">{post.data.category}</span>
+      <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+      {post.data.updatedDate && <span class="post-updated">更新 {formatDate(post.data.updatedDate)}</span>}
+    </span>
+
+    <h2>{post.data.title}</h2>
+
+    <div class="post-body">
+      <Content />
+    </div>
+
+    <p class="post-back"><a href="/blog">記事一覧に戻る</a></p>
+  </article>
+</BaseLayout>
