@@ -145,6 +145,19 @@ a:focus-visible {
   font-size: clamp(1.05rem, 2vw, 1.25rem);
 }
 
+/* ページ固有の見出し。h2 のルールしか無く、h1 がブラウザ既定のまま出ていて
+   スマホで極端に大きくなっていた。h2 と同じ clamp 方式でそろえる */
+.site-main h1 {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-size: clamp(1.5rem, 4.2vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1.4;
+  /* 長い日本語見出しが不自然な位置で折れないようにする */
+  word-break: auto-phrase;
+  overflow-wrap: anywhere;
+}
+
 .site-main h2 {
   margin: 0 0 12px;
   color: var(--ink);
