@@ -1,5 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE_NAME_FULL, absoluteUrl } from '../../lib/site';
 
@@ -14,10 +15,20 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 
-const formatDate = (date: Date) =>
-  `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+// 表示はビルド環境のタイムゾーンに引きずられないよう日本時間で固定する。
+// 固定しないと、日時付きの pubDate が UTC ビルドで前日にずれる。
+const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
+  timeZone: 'Asia/Tokyo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+const formatDate = (date: Date) => dateFormatter.format(date).replaceAll('/', '.');
 
-// 記事のリッチリザルト用。日付は ISO 8601 で渡す
+const postUrl = absoluteUrl(`/blog/${post.id}/`);
+// 代表画像。OGP と構造化データで同じものを使う
+const heroImageUrl = post.data.heroImage ? absoluteUrl(post.data.heroImage.src) : undefined;
+
 const articleJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
@@ -26,7 +37,8 @@ const articleJsonLd = {
   datePublished: post.data.pubDate.toISOString(),
   ...(post.data.updatedDate ? { dateModified: post.data.updatedDate.toISOString() } : {}),
   // canonical と完全に一致させる。末尾スラッシュが無いと別URL扱いになる
-  mainEntityOfPage: absoluteUrl(`/blog/${post.id}/`),
+  mainEntityOfPage: postUrl,
+  ...(heroImageUrl ? { image: [heroImageUrl] } : {}),
   // 書いた個人を author にする。publisher は団体のまま
   author: {
     '@type': 'Person',
@@ -45,18 +57,19 @@ const articleJsonLd = {
   title={`${post.data.title}｜OneThing 筑波大学エンジニアコミュニティ`}
   description={post.data.description}
   ogType="article"
+  ogImage={post.data.heroImage?.src}
   navItems={[
     { href: '/', label: 'トップ' },
-    { href: '/blog', label: '記事' },
-    { href: '/calender', label: 'カレンダー' },
+    { href: '/blog/', label: '記事' },
+    { href: '/calender/', label: 'カレンダー' },
   ]}
 >
   <Fragment slot="head">
-    <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
   </Fragment>
 
   <article class="post">
-    <p class="post-back"><a href="/blog">記事一覧に戻る</a></p>
+    <p class="post-back"><a href="/blog/">記事一覧に戻る</a></p>
 
     <span class="post-meta">
       <span class="post-category">{post.data.category}</span>
@@ -64,7 +77,18 @@ const articleJsonLd = {
       {post.data.updatedDate && <span class="post-updated">更新 {formatDate(post.data.updatedDate)}</span>}
     </span>
 
-    <h2>{post.data.title}</h2>
+    <h1>{post.data.title}</h1>
+
+    {
+      post.data.heroImage && (
+        <Image
+          class="post-hero"
+          src={post.data.heroImage}
+          alt={post.data.heroImageAlt ?? ''}
+          loading="eager"
+        />
+      )
+    }
 
     <div class="post-body">
       <Content />
@@ -74,6 +98,6 @@ const articleJsonLd = {
       この記事は{post.data.authorRole ? ` ${post.data.authorRole}の` : ''}<strong>{post.data.author}</strong>が書きました。
     </p>
 
-    <p class="post-back"><a href="/blog">記事一覧に戻る</a></p>
+    <p class="post-back"><a href="/blog/">記事一覧に戻る</a></p>
   </article>
 </BaseLayout>

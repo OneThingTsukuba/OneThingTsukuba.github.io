@@ -4,8 +4,8 @@ import EventCalendarPanel from '../../components/EventCalendarPanel.astro';
 
 const navItems = [
   { href: '/', label: 'トップ' },
-  { href: '/blog', label: '記事' },
-  { href: '/calender', label: 'カレンダー' },
+  { href: '/blog/', label: '記事' },
+  { href: '/calender/', label: 'カレンダー' },
 ];
 ---
 
@@ -15,7 +15,7 @@ const navItems = [
   navItems={navItems}
 >
   <section>
-    <h2>活動カレンダー</h2>
+    <h1>活動カレンダー</h1>
     <p>もくもく会・LT会・勉強会の予定です。各イベントの詳細と申し込みはイベント一覧から確認できます。</p>
     <EventCalendarPanel variant="detail" heading="OneThing 活動カレンダー" headingId="calendar-page-events" />
   </section>

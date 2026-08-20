@@ -22,6 +22,12 @@ interface Props {
   /** og:type。トップは website、記事ページは article。 */
   ogType?: 'website' | 'article';
   navItems?: NavItem[];
+  /**
+   * ヘッダーのサイト名を h1 にするか。
+   * トップページだけ true。下層ページはページ固有の見出しを h1 にするので、
+   * ここを h1 にすると1ページに h1 が2つ出るか、ページの主題が伝わらなくなる。
+   */
+  brandAsHeading?: boolean;
 }
 
 const {
@@ -30,12 +36,19 @@ const {
   ogImage = OG_IMAGE_PATH,
   ogType = 'website',
   navItems = [],
+  brandAsHeading = false,
 } = Astro.props;
 
 // canonical は絶対URLでなければ意味がない。Astro.url はビルド時に astro.config の site を基準に解決される。
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? absoluteUrl('/')).toString();
-// フッターの年はビルド時に決まる。GitHub Actions が毎時ビルドしているので年をまたいでも追従する
-const currentYear = new Date().getFullYear();
+// フッターの年はビルド時に決まる。ビルド環境は UTC なので、タイムゾーンを日本に固定する。
+// 固定しないと元日の 00:00〜08:59 (JST) の間だけ前年が出る。
+// なお毎時の cron ビルドは実行を保証しない (GitHub Actions の遅延・破棄、
+// 公開リポジトリの60日無活動での自動停止)。年跨ぎ直後の表示は push で確定させる。
+const currentYear = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Asia/Tokyo',
+  year: 'numeric',
+}).format(new Date());
 const ogImageUrl = absoluteUrl(ogImage);
 ---
 
@@ -84,10 +97,21 @@ const ogImageUrl = absoluteUrl(ogImage);
     <a class="skip-link" href="#main">本文へスキップ</a>
 
     <header class="site-header">
-      <h1 class="header-title">
-        <span class="main-title">OneThing</span>
-        <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
-      </h1>
+      {
+        brandAsHeading ? (
+          <h1 class="header-title">
+            <span class="main-title">OneThing</span>
+            <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
+          </h1>
+        ) : (
+          <p class="header-title">
+            <a href="/">
+              <span class="main-title">OneThing</span>
+              <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
+            </a>
+          </p>
+        )
+      }
       {
         navItems.length > 0 && (
           <nav class="site-nav" aria-label="メインナビゲーション">

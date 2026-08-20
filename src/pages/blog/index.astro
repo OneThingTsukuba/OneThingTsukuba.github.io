@@ -4,8 +4,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const navItems = [
   { href: '/', label: 'トップ' },
-  { href: '/blog', label: '記事' },
-  { href: '/calender', label: 'カレンダー' },
+  { href: '/blog/', label: '記事' },
+  { href: '/calender/', label: 'カレンダー' },
 ];
 
 // 新しい順に並べる
@@ -13,8 +13,14 @@ const posts = (await getCollection('blog')).sort(
   (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
 
-const formatDate = (date: Date) =>
-  `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+// 日付はビルド環境のタイムゾーンに引きずられないよう日本時間で固定する
+const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
+  timeZone: 'Asia/Tokyo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+const formatDate = (date: Date) => dateFormatter.format(date).replaceAll('/', '.');
 ---
 
 <BaseLayout
@@ -23,7 +29,7 @@ const formatDate = (date: Date) =>
   navItems={navItems}
 >
   <section>
-    <h2>記事一覧</h2>
+    <h1>記事一覧</h1>
     {
       posts.length === 0 ? (
         <p>まだ記事がありません。</p>

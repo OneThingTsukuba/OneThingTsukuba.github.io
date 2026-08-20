@@ -12,8 +12,8 @@ const navItems = [
   { href: '#faq', label: 'よくある質問' },
   { href: '#management', label: '運営体制' },
   { href: '#contact', label: 'お問い合わせ' },
-  { href: '/blog', label: '記事' },
-  { href: '/calender', label: 'カレンダー' },
+  { href: '/blog/', label: '記事' },
+  { href: '/calender/', label: 'カレンダー' },
 ];
 
 // 構造化データ用にイベントを取る。EventCalendarPanel と同じ関数で、結果はモジュール内でキャッシュされる。
@@ -103,12 +103,13 @@ const faqJsonLd = {
   title="OneThing｜筑波大学のエンジニアコミュニティ｜もくもく会・LT会・勉強会"
   description={SITE_DESCRIPTION}
   navItems={navItems}
+  brandAsHeading
 >
   <Fragment slot="head">
-    <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
-    <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
     {eventsJsonLd.map((event) => (
-      <script type="application/ld+json" set:html={JSON.stringify(event)} />
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(event)} />
     ))}
   </Fragment>
 
