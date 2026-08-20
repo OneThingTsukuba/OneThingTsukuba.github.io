@@ -167,8 +167,10 @@ a:focus-visible {
   white-space: nowrap;
 }
 
-/* .site-main p は (0,2,0) かつこの位置より後ろにある。
-   同点だと後ろが勝つので、ここは必ず .site-main を付けて (0,3,0) にする。
+/* .site-main p は (0,1,1) で、この位置より後ろにある。
+   クラス1つだけのセレクタ (0,1,0) では負けるので、必ず .site-main を付けて
+   クラス2つ以上にする。.site-main .activity-card p は (0,2,1)、
+   .site-main .activity-note は (0,2,0)。どちらも .site-main p に勝つ。
    付け忘れると font-size と margin だけ静かに無視される（症状が出ない壊れ方） */
 .site-main .activity-card p {
   margin: 0;
@@ -659,13 +661,13 @@ a:focus-visible {
   }
 
   /* ボタンはタイトルの右上に絶対配置する。余白はタイトルにだけ掛ける。
-     header 側に padding-right を入れると、開いたナビの行まで一緒に細くなる */
-  .header-title {
+     header 側に padding-right を入れると、開いたナビの行まで一緒に細くなる。
+     ボタンが出ていないときは余白も要らないので data-nav-enhanced で条件を揃える */
+  .site-header[data-nav-enhanced="true"] .header-title {
     padding-right: 62px;
   }
 
   .nav-toggle {
-    display: flex;
     position: absolute;
     top: 22px;
     right: 14px;
@@ -709,15 +711,20 @@ a:focus-visible {
     transform: translateY(-7px) rotate(-45deg);
   }
 
-  .site-nav {
+  /* JS が動く前・動かない環境ではナビをそのまま出しておく。
+     ボタンだけ描画して nav を隠すと、押しても何も起きないボタンが残り、
+     /blog/ にも /calender/ にも到達できない（この PR が直したはずの障害の再発）。
+     JS はリスナー登録が全て済んでから data-nav-enhanced="true" を立てる。
+     そこで初めてボタンが出て、閉じた状態が有効になる */
+  .site-header[data-nav-enhanced="true"] .nav-toggle {
+    display: flex;
+  }
+
+  .site-header[data-nav-enhanced="true"][data-nav-open="false"] .site-nav {
     display: none;
   }
 
-  .site-header[data-nav-open="true"] .site-nav {
-    display: block;
-  }
-
-  /* 横並びのままだと項目が9個あるトップで折り返しが読めない。縦1列にする */
+  /* 横並びだと折り返しが読みにくいので縦1列にする */
   .site-nav ul {
     flex-direction: column;
     gap: 0;

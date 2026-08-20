@@ -4,7 +4,6 @@ import EventCalendarPanel from '../components/EventCalendarPanel.astro';
 import { getCalendarDashboard } from '../lib/calendar';
 import { NAV_ITEMS, SITE_DESCRIPTION, SITE_NAME_FULL, SOCIAL_LINKS, absoluteUrl } from '../lib/site';
 
-
 // 構造化データ用にイベントを取る。EventCalendarPanel と同じ関数で、結果はモジュール内でキャッシュされる。
 const dashboard = await getCalendarDashboard(12, { sourceIds: ['onething'] });
 

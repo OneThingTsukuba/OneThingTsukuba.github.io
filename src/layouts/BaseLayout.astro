@@ -96,9 +96,11 @@ const ogImageUrl = absoluteUrl(ogImage);
   <body>
     <a class="skip-link" href="#main">本文へスキップ</a>
 
-    <!-- data-nav-open がモバイルメニューの開閉状態。CSS はこの属性だけを見る。
-         JS が動かない環境では false のまま = メニューは閉じたまま出ない。
-         そのためナビの中身はフッターにも置かず、代わりにボタンを常に描画している -->
+    <!-- モバイルメニューの状態は属性2つで表す。
+         data-nav-enhanced: JS がリスナーを張り終えたか。立つまで CSS は
+           ナビを開いたまま表示し、ボタンを隠す。JS が落ちてもリンクに到達できる
+         data-nav-open: 開閉状態そのもの。CSS の表示と aria-expanded の
+           両方をここから導出する -->
     <header class="site-header" data-nav-open="false">
       {
         brandAsHeading ? (
@@ -171,7 +173,7 @@ const ogImageUrl = absoluteUrl(ogImage);
           setOpen(header.dataset.navOpen !== 'true');
         });
 
-        // 同一ページ内アンカー (#faq など) は遷移が起きないので、
+        // 同一ページ内アンカー (/#contact) は遷移が起きないので、
         // 閉じる処理を入れないとメニューが開いたまま残って本文を隠す
         nav.addEventListener('click', (event) => {
           if ((event.target as HTMLElement).closest('a')) {
@@ -186,12 +188,20 @@ const ogImageUrl = absoluteUrl(ogImage);
           }
         });
 
-        // 開いたまま横向きにするとデスクトップ幅になり、ボタンが消えて閉じられなくなる
-        window.matchMedia('(min-width: 769px)').addEventListener('change', (event) => {
-          if (event.matches) {
+        // 開いたまま横向きにするとデスクトップ幅になり、ボタンが消えて閉じられなくなる。
+        // CSS と同じ (max-width: 768px) を使う。JS 側だけ 769px にすると、
+        // 768px と 769px の間の小数幅で両者の判定が食い違う
+        window.matchMedia('(max-width: 768px)').addEventListener('change', (event) => {
+          if (!event.matches) {
             setOpen(false);
           }
         });
+
+        // ここまで全て登録できて初めてボタンを出す。
+        // CSS はこのフラグが立つまでナビを開いたまま表示し続けるので、
+        // JS が落ちてもリンクには到達できる
+        setOpen(false);
+        header.dataset.navEnhanced = 'true';
       }
     </script>
   </body>
