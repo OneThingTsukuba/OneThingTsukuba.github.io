@@ -7,6 +7,9 @@
   --surface: #1a1a24;
   --surface-tint: #222438;
   --ink: #e8e8f0;
+  /* 本文の弱い文字色。背景 #0f0f13 に対して 5.53:1 で WCAG AA を満たす。
+     以前ここに #555568 (2.63:1) を直書きした箇所が3つあり、いずれも AA 未満だった。
+     弱い文字色が要るときは新しい色を作らず、この変数を使うこと */
   --muted: #8888a0;
   --line: rgba(255, 255, 255, 0.08);
   --accent-purple: #6c63ff;
@@ -142,6 +145,19 @@ a:focus-visible {
   font-size: clamp(1.05rem, 2vw, 1.25rem);
 }
 
+/* ページ固有の見出し。h2 のルールしか無く、h1 がブラウザ既定のまま出ていて
+   スマホで極端に大きくなっていた。h2 と同じ clamp 方式でそろえる */
+.site-main h1 {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-size: clamp(1.5rem, 4.2vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1.4;
+  /* 長い日本語見出しが不自然な位置で折れないようにする */
+  word-break: auto-phrase;
+  overflow-wrap: anywhere;
+}
+
 .site-main h2 {
   margin: 0 0 12px;
   color: var(--ink);
@@ -205,7 +221,7 @@ a:focus-visible {
   flex: 0 0 auto;
   display: grid;
   gap: 3px;
-  color: #555568;
+  color: var(--muted);
   font-size: 0.82rem;
   font-weight: 700;
   line-height: 1.2;
@@ -390,7 +406,7 @@ a:focus-visible {
 }
 
 .event-calendar-upcoming-header span {
-  color: #555568;
+  color: var(--muted);
   font-size: 0.82rem;
   font-weight: 800;
   white-space: nowrap;
@@ -534,7 +550,7 @@ a:focus-visible {
   padding: 22px 24px 26px;
   border-top: 1px solid var(--line);
   background: var(--page-bg);
-  color: #555568;
+  color: var(--muted);
   text-align: center;
 }
 
@@ -790,9 +806,18 @@ a:focus-visible {
   color: var(--ink);
 }
 
-.post-body p,
+.post-body p {
+  /* 段落どうしがくっついて読みにくかったので、行間より広い余白を明示する */
+  margin: 20px 0 0;
+  color: var(--muted);
+}
+
 .post-body li {
   color: var(--muted);
+}
+
+.post-body strong {
+  color: var(--ink);
 }
 
 .post-body ul,
@@ -828,10 +853,21 @@ a:focus-visible {
   background: var(--surface-tint);
 }
 
-/* 表が広いときは記事だけ横スクロールさせる。body 側は絶対に横スクロールさせない */
-.post-body :is(table) {
-  display: block;
+/* 表が広いときは記事だけ横スクロールさせる。body 側は絶対に横スクロールさせない。
+   table 自体を display: block にするとスクリーンリーダーが表として読まなくなるので、
+   rehype-wrap-tables が付ける外側の入れ物にスクロールを持たせる */
+.table-scroll {
   overflow-x: auto;
+  margin-top: 20px;
+}
+
+.table-scroll:focus-visible {
+  outline: 2px solid var(--accent-green);
+  outline-offset: 2px;
+}
+
+.post-body .table-scroll table {
+  margin-top: 0;
 }
 
 .post-back {
@@ -841,4 +877,39 @@ a:focus-visible {
 
 .post-updated {
   color: var(--accent-purple-soft);
+}
+
+/* 記事末尾の署名。誰が書いたかを明示する。
+   .site-main p (0,2,0) に負けるため、こちらも要素セレクタを足して (0,2,0) にする。
+   ここを .post-byline だけにすると margin と font-size が黙って効かなくなる */
+.site-main .post-byline {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 0.94rem;
+  color: var(--muted);
+}
+
+.site-main .post-byline strong {
+  color: var(--ink);
+}
+
+/* 記事中の画像。横幅いっぱいまで、はみ出させない */
+.post-body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 28px 0 0;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+
+/* 記事の代表画像。Astro の Image が width/height を出すのでレイアウト移動は起きない */
+.post-hero {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 24px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
 }
