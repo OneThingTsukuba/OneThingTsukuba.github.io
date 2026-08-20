@@ -127,13 +127,35 @@ const faqJsonLd = {
 
   <section id="activities">
     <h2>活動内容</h2>
-    <ul>
-      <li><strong>もくもく会（週1回程度）</strong> ... 各自が作りたいものを持ち寄って手を動かす会。途中参加・途中退出できます。手を止めた雑談では Stripe の課金実装、OLTP と OLAP、LLM エージェントの研究計画といった話題が出ています</li>
-      <li><strong>勉強会</strong> ... これまでのトピックは Claude Code の使い方、git command</li>
-      <li><strong>LT会</strong> ... 1人5分の持ち時間で作ったものを話す会。飛び入りの発表も歓迎しています</li>
-      <li><strong>初心者向けプログラミングワークショップ</strong></li>
-      <li><strong>協賛企業とのプロジェクト</strong></li>
+    <ul class="activity-grid">
+      <li class="activity-card">
+        <div class="activity-card-head">
+          <h3>もくもく会</h3>
+          <span class="activity-cadence">週1回程度</span>
+        </div>
+        <p>
+          各自が作りたいものを持ち寄って手を動かす会。途中参加も途中退出もできます。手を止めた雑談では
+          Stripe の課金実装、OLTP と OLAP、LLM エージェントの研究計画といった話題が出ています。
+        </p>
+      </li>
+      <li class="activity-card">
+        <div class="activity-card-head">
+          <h3>勉強会</h3>
+          <span class="activity-cadence">月に数回</span>
+        </div>
+        <p>知りたいことを、知っている人が話す形式。これまでのトピックは Claude Code の使い方と git command。</p>
+      </li>
+      <li class="activity-card">
+        <div class="activity-card-head">
+          <h3>LT会</h3>
+          <span class="activity-cadence">月に数回</span>
+        </div>
+        <p>1人5分の持ち時間で、作ったものを話す会。飛び入りの発表も歓迎しています。</p>
+      </li>
     </ul>
+    <p class="activity-note">
+      このほかに、初心者向けプログラミングワークショップと、協賛企業とのプロジェクトがあります。
+    </p>
     <EventCalendarPanel variant="overview" heading="直近の活動予定" headingId="top-event-calendar" />
   </section>
 

@@ -96,7 +96,10 @@ const ogImageUrl = absoluteUrl(ogImage);
   <body>
     <a class="skip-link" href="#main">本文へスキップ</a>
 
-    <header class="site-header">
+    <!-- data-nav-open がモバイルメニューの開閉状態。CSS はこの属性だけを見る。
+         JS が動かない環境では false のまま = メニューは閉じたまま出ない。
+         そのためナビの中身はフッターにも置かず、代わりにボタンを常に描画している -->
+    <header class="site-header" data-nav-open="false">
       {
         brandAsHeading ? (
           <h1 class="header-title">
@@ -114,15 +117,29 @@ const ogImageUrl = absoluteUrl(ogImage);
       }
       {
         navItems.length > 0 && (
-          <nav class="site-nav" aria-label="メインナビゲーション">
-            <ul>
-              {navItems.map((item) => (
-                <li>
-                  <a href={item.href}>{item.label}</a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <Fragment>
+            {/* 768px 以下でだけ出るハンバーガー。48x48 は指で押せる最小サイズ (Apple HIG は44pt) */}
+            <button
+              class="nav-toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="site-nav"
+              aria-label="メニューを開く"
+            >
+              <span class="nav-toggle-bar" aria-hidden="true" />
+              <span class="nav-toggle-bar" aria-hidden="true" />
+              <span class="nav-toggle-bar" aria-hidden="true" />
+            </button>
+            <nav class="site-nav" id="site-nav" aria-label="メインナビゲーション">
+              <ul>
+                {navItems.map((item) => (
+                  <li>
+                    <a href={item.href}>{item.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </Fragment>
         )
       }
     </header>
@@ -134,5 +151,48 @@ const ogImageUrl = absoluteUrl(ogImage);
     <footer class="site-footer">
       <p>&copy; {currentYear} OneThing All Rights Reserved.</p>
     </footer>
+
+    <script>
+      // モバイルメニューの開閉。状態は header の data-nav-open ただ1つに持たせ、
+      // CSS の表示切り替えと aria-expanded の両方をそこから導出する。
+      // 状態を2箇所に持つと、片方だけ更新して見た目と支援技術がズレる
+      const header = document.querySelector<HTMLElement>('.site-header');
+      const toggle = header?.querySelector<HTMLButtonElement>('.nav-toggle');
+      const nav = document.getElementById('site-nav');
+
+      if (header && toggle && nav) {
+        const setOpen = (open: boolean) => {
+          header.dataset.navOpen = String(open);
+          toggle.setAttribute('aria-expanded', String(open));
+          toggle.setAttribute('aria-label', open ? 'メニューを閉じる' : 'メニューを開く');
+        };
+
+        toggle.addEventListener('click', () => {
+          setOpen(header.dataset.navOpen !== 'true');
+        });
+
+        // 同一ページ内アンカー (#faq など) は遷移が起きないので、
+        // 閉じる処理を入れないとメニューが開いたまま残って本文を隠す
+        nav.addEventListener('click', (event) => {
+          if ((event.target as HTMLElement).closest('a')) {
+            setOpen(false);
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && header.dataset.navOpen === 'true') {
+            setOpen(false);
+            toggle.focus();
+          }
+        });
+
+        // 開いたまま横向きにするとデスクトップ幅になり、ボタンが消えて閉じられなくなる
+        window.matchMedia('(min-width: 769px)').addEventListener('change', (event) => {
+          if (event.matches) {
+            setOpen(false);
+          }
+        });
+      }
+    </script>
   </body>
 </html>
