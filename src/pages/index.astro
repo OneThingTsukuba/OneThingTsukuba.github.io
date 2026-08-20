@@ -2,19 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EventCalendarPanel from '../components/EventCalendarPanel.astro';
 import { getCalendarDashboard } from '../lib/calendar';
-import { SITE_DESCRIPTION, SITE_NAME_FULL, SOCIAL_LINKS, absoluteUrl } from '../lib/site';
+import { NAV_ITEMS, SITE_DESCRIPTION, SITE_NAME_FULL, SOCIAL_LINKS, absoluteUrl } from '../lib/site';
 
-const navItems = [
-  { href: '#onething', label: 'OneThingとは' },
-  { href: '#purpose', label: '目的' },
-  { href: '#activities', label: '活動内容' },
-  { href: '#participation', label: '参加方法' },
-  { href: '#faq', label: 'よくある質問' },
-  { href: '#management', label: '運営体制' },
-  { href: '#contact', label: 'お問い合わせ' },
-  { href: '/blog/', label: '記事' },
-  { href: '/calender/', label: 'カレンダー' },
-];
 
 // 構造化データ用にイベントを取る。EventCalendarPanel と同じ関数で、結果はモジュール内でキャッシュされる。
 const dashboard = await getCalendarDashboard(12, { sourceIds: ['onething'] });
@@ -102,7 +91,7 @@ const faqJsonLd = {
 <BaseLayout
   title="OneThing｜筑波大学のエンジニアコミュニティ｜もくもく会・LT会・勉強会"
   description={SITE_DESCRIPTION}
-  navItems={navItems}
+  navItems={[...NAV_ITEMS]}
   brandAsHeading
 >
   <Fragment slot="head">

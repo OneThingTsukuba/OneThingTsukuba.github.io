@@ -25,6 +25,17 @@ export const SOCIAL_LINKS = {
   connpass: 'https://onething-lt.connpass.com',
 } as const;
 
+/** ヘッダーのナビ。スマホではハンバーガーの中身になるので、行き先は4つに絞る。
+    トップの各セクション (#purpose, #faq など) はここに入れない。
+    入れると9項目になり、メニューを開いた時点でどれを押せばいいか分からなくなる。
+    お問い合わせだけは `/#contact` にして、どのページからでも飛べるようにしている。 */
+export const NAV_ITEMS = [
+  { href: '/', label: 'トップ' },
+  { href: '/blog/', label: '記事' },
+  { href: '/calender/', label: 'カレンダー' },
+  { href: '/#contact', label: 'お問い合わせ' },
+] as const;
+
 /** 絶対URLを作る。canonical と OGP は相対パス不可なので必ずこれを通す。 */
 export function absoluteUrl(path: string): string {
   return new URL(path, SITE_URL).toString();
