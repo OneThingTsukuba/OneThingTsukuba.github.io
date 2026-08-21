@@ -6,3 +6,8 @@ dist/
 
 # ローカルのプレビュー設定（各自の環境依存なので共有しない）
 .claude/
+
+# Playwright の実行結果（成果物なので共有しない）
+test-results/
+playwright-report/
+blob-report/
