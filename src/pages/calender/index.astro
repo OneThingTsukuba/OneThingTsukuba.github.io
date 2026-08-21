@@ -1,18 +1,13 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EventCalendarPanel from '../../components/EventCalendarPanel.astro';
-
-const navItems = [
-  { href: '/', label: 'トップ' },
-  { href: '/blog/', label: '記事' },
-  { href: '/calender/', label: 'カレンダー' },
-];
+import { NAV_ITEMS } from '../../lib/site';
 ---
 
 <BaseLayout
   title="活動カレンダー｜OneThing 筑波大学エンジニアコミュニティ"
   description="OneThing（筑波大学エンジニアコミュニティ）の活動カレンダー。もくもく会・LT会・勉強会の開催日時と会場を掲載しています。参加費無料、初心者歓迎。"
-  navItems={navItems}
+  navItems={[...NAV_ITEMS]}
 >
   <section>
     <h1>活動カレンダー</h1>

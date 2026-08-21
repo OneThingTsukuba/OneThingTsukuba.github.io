@@ -118,6 +118,73 @@ a:focus-visible {
   color: var(--accent-green);
 }
 
+/* ハンバーガーボタン。768px 超では nav がそのまま並ぶので不要 */
+.nav-toggle {
+  display: none;
+}
+
+/* 活動内容。ただの箇条書きだと5行が同じ重さで並んで、
+   どれが週1でどれが不定期かが読み取れなかった */
+.activity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activity-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.activity-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.activity-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.activity-cadence {
+  padding: 3px 10px;
+  border: 1px solid var(--accent-green);
+  border-radius: 999px;
+  color: var(--accent-green);
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* .site-main p は (0,1,1) で、この位置より後ろにある。
+   クラス1つだけのセレクタ (0,1,0) では負けるので、必ず .site-main を付けて
+   クラス2つ以上にする。.site-main .activity-card p は (0,2,1)、
+   .site-main .activity-note は (0,2,0)。どちらも .site-main p に勝つ。
+   付け忘れると font-size と margin だけ静かに無視される（症状が出ない壊れ方） */
+.site-main .activity-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.93rem;
+  line-height: 1.75;
+}
+
+.site-main .activity-note {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .site-main {
   max-width: 980px;
   margin: 0 auto;
@@ -593,8 +660,85 @@ a:focus-visible {
     white-space: normal;
   }
 
-  .site-nav {
+  /* ボタンはタイトルの右上に絶対配置する。余白はタイトルにだけ掛ける。
+     header 側に padding-right を入れると、開いたナビの行まで一緒に細くなる。
+     ボタンが出ていないときは余白も要らないので data-nav-enhanced で条件を揃える */
+  .site-header[data-nav-enhanced="true"] .header-title {
+    padding-right: 62px;
+  }
+
+  .nav-toggle {
+    position: absolute;
+    top: 22px;
+    right: 14px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .nav-toggle:focus-visible {
+    outline: 2px solid var(--accent-green);
+    outline-offset: 2px;
+  }
+
+  .nav-toggle-bar {
+    width: 22px;
+    height: 2px;
+    margin: 0 auto;
+    border-radius: 999px;
+    background: var(--ink);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  /* 開いている間は3本線を X に組み替える。
+     bar は 2px + gap 5px なので、中心どうしの距離はちょうど 7px */
+  .site-header[data-nav-open="true"] .nav-toggle-bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .site-header[data-nav-open="true"] .nav-toggle-bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .site-header[data-nav-open="true"] .nav-toggle-bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* JS が動く前・動かない環境ではナビをそのまま出しておく。
+     ボタンだけ描画して nav を隠すと、押しても何も起きないボタンが残り、
+     /blog/ にも /calender/ にも到達できない（この PR が直したはずの障害の再発）。
+     JS はリスナー登録が全て済んでから data-nav-enhanced="true" を立てる。
+     そこで初めてボタンが出て、閉じた状態が有効になる */
+  .site-header[data-nav-enhanced="true"] .nav-toggle {
+    display: flex;
+  }
+
+  .site-header[data-nav-enhanced="true"][data-nav-open="false"] .site-nav {
     display: none;
+  }
+
+  /* 横並びだと折り返しが読みにくいので縦1列にする */
+  .site-nav ul {
+    flex-direction: column;
+    gap: 0;
+    margin-top: 18px;
+  }
+
+  .site-nav li + li {
+    border-top: 1px solid var(--line);
+  }
+
+  .site-nav a {
+    display: block;
+    padding: 13px 2px;
+    font-size: 1rem;
   }
 
   .site-main {

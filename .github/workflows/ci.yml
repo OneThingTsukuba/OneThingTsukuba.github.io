@@ -1,8 +1,11 @@
-# PR の時点でビルドと型チェックを走らせる。
+# PR の時点でビルド・型チェック・E2E を走らせる。
 #
 # deploy.yml は main への push と cron でしか動かないため、
 # frontmatter の欠落やルート生成の失敗が、マージして本番デプロイが落ちるまで気づけなかった。
 # ここで先に落とす。デプロイはしない。
+#
+# E2E を分けているのは、Chromium のダウンロードで1分ほど余計にかかるため。
+# 型エラーの結果を待つのにブラウザの取得完了を待たされるのは無駄。
 name: CI
 
 on:
@@ -31,3 +34,33 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # --with-deps は CI 専用。ubuntu ランナーに足りない共有ライブラリを入れる
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E test
+        run: npm run test:e2e
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

@@ -1,12 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-
-const navItems = [
-  { href: '/', label: 'トップ' },
-  { href: '/blog/', label: '記事' },
-  { href: '/calender/', label: 'カレンダー' },
-];
+import { NAV_ITEMS } from '../../lib/site';
 
 // 新しい順に並べる
 const posts = (await getCollection('blog')).sort(
@@ -26,7 +21,7 @@ const formatDate = (date: Date) => dateFormatter.format(date).replaceAll('/', '.
 <BaseLayout
   title="記事一覧｜OneThing 筑波大学エンジニアコミュニティ"
   description="OneThing（筑波大学エンジニアコミュニティ）の記事一覧。活動の紹介、勉強会・LT会の開催報告、技術の解説を掲載しています。"
-  navItems={navItems}
+  navItems={[...NAV_ITEMS]}
 >
   <section>
     <h1>記事一覧</h1>
