@@ -78,7 +78,9 @@ const ogImageUrl = absoluteUrl(ogImage);
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
 
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- ロゴのキューブマークを favicon に使う (public/favicon.png、元画像は OneThing-logo.jpg)。
+         旧 favicon.svg は「1」の文字アイコンで、ロゴ制定前の仮のもの -->
+    <link rel="icon" href="/favicon.png" type="image/png" />
     <meta name="theme-color" content="#0f172a" />
 
     <!-- Google Search Console の所有権確認。消すと登録が外れ、検索の数字が見えなくなる。
@@ -105,14 +107,22 @@ const ogImageUrl = absoluteUrl(ogImage);
       {
         brandAsHeading ? (
           <h1 class="header-title">
-            <span class="main-title">OneThing</span>
-            <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
+            {/* alt は空にする。直後に「OneThing」のテキストがあるので、
+                alt を入れると読み上げが「OneThing OneThing」と二重になる */}
+            <img class="header-logo" src="/images/logo-mark.png" alt="" width="447" height="512" />
+            <span class="header-text">
+              <span class="main-title">OneThing</span>
+              <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
+            </span>
           </h1>
         ) : (
           <p class="header-title">
             <a href="/">
-              <span class="main-title">OneThing</span>
-              <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
+              <img class="header-logo" src="/images/logo-mark.png" alt="" width="447" height="512" />
+              <span class="header-text">
+                <span class="main-title">OneThing</span>
+                <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
+              </span>
             </a>
           </p>
         )
