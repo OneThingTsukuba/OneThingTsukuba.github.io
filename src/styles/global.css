@@ -74,6 +74,21 @@ a:focus-visible {
   margin: 0 auto;
 }
 
+/* ロゴマークとテキストを横並びにする。h1 直下と p > a の2構造があるので、
+   flex はその両方 (h1 自身と a) に掛ける */
+h1.header-title,
+.header-title a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-logo {
+  width: clamp(40px, 5vw, 54px);
+  height: auto;
+  flex-shrink: 0;
+}
+
 .main-title,
 .sub-title {
   display: inline;
@@ -649,9 +664,15 @@ a:focus-visible {
     display: block;
   }
 
+  /* 3.25rem はロゴ導入前の値。ロゴ幅48px+間隔を確保すると 375px 幅では
+     「OneThing」が折り返すため、1行に収まる 2.5rem まで下げた */
   .main-title {
-    font-size: 3.25rem;
+    font-size: 2.5rem;
     overflow-wrap: anywhere;
+  }
+
+  .header-logo {
+    width: 48px;
   }
 
   .sub-title {
@@ -827,12 +848,26 @@ a:focus-visible {
 }
 
 @media (max-width: 420px) {
+  /* 3rem はロゴ導入前の値。ロゴ48px+間隔を引いた残り幅 (375px時 約220px) に
+     「OneThing」を1行で収めるには 2.5rem が上限 */
   .main-title {
-    font-size: 3rem;
+    font-size: 2.5rem;
   }
 
+  /* ロゴ44px+間隔10pxを引いた残り幅 (375px時 227px) に
+     「-筑波大学エンジニアコミュニティ-」(0.86remで実測約218px) を1行で収める。
+     0.88rem では222pxになり3px超過して末尾だけ折り返す */
   .sub-title {
-    font-size: 0.94rem;
+    font-size: 0.86rem;
+  }
+
+  h1.header-title,
+  .header-title a {
+    gap: 10px;
+  }
+
+  .header-logo {
+    width: 44px;
   }
 
 }
