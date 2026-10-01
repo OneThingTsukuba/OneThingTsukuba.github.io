@@ -156,3 +156,17 @@ test('BlogPosting の publisher は Organization と同じ @id を指す', async
     expect(article?.publisher['@id']).toBe(ORGANIZATION_ID);
   }
 });
+
+test('検索エンジンの所有権確認タグが全ページにある', async ({ page }) => {
+  for (const pagePath of PAGES) {
+    await page.goto(pagePath);
+    const bing = await page.locator('meta[name="msvalidate.01"]').evaluateAll((metas) =>
+      metas.map((meta) => meta.getAttribute('content')),
+    );
+    expect(bing).toEqual(['E0545B0A95948509DE15CD54BE511DF0', '7D981B47B7180EEBA805FF40E8421C7C']);
+    await expect(page.locator('meta[name="google-site-verification"]')).toHaveAttribute(
+      'content',
+      'GK9IpwWMj_L69LR9hhJU6OlizI9rS6RjJx1PAQpqzv0',
+    );
+  }
+});
