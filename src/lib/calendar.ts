@@ -483,3 +483,43 @@ function jstDateKey(date: Date): string {
 function startOfJstDay(date: Date): Date {
   return new Date(`${jstDateKey(date)}T00:00:00+09:00`);
 }
+
+export type ParsedLocation = {
+  name: string;
+  address: {
+    postalCode: string;
+    addressRegion: string;
+    addressLocality: string;
+    streetAddress: string;
+  } | null;
+};
+
+const JAPANESE_LOCATION_PATTERN =
+  /^([^,]+),\s*(?:日本[、,]\s*)?〒\s*([0-9０-９]{3}[-−－‐]?[0-9０-９]{4})\s*(東京都|北海道|京都府|大阪府|[^\s]{2,3}県)\s*([^\s]+?[市区町村])\s*(.+)$/;
+
+// Google カレンダーの LOCATION は「会場名, 日本、〒…住所」の1文字列で来るので、Place の name と住所に分ける
+export function parseLocation(location: string): ParsedLocation {
+  const match = location.trim().match(JAPANESE_LOCATION_PATTERN);
+
+  if (!match) {
+    return { name: location.trim(), address: null };
+  }
+
+  const [, name, postalCode, addressRegion, addressLocality, streetAddress] = match;
+
+  return {
+    name: name.trim(),
+    address: {
+      postalCode: toHalfWidth(postalCode),
+      addressRegion,
+      addressLocality,
+      streetAddress: toHalfWidth(streetAddress.trim()),
+    },
+  };
+}
+
+function toHalfWidth(text: string): string {
+  return text
+    .replace(/[０-９]/g, (digit) => String.fromCharCode(digit.charCodeAt(0) - 0xfee0))
+    .replace(/[−－‐]/g, '-');
+}
