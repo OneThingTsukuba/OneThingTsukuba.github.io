@@ -23,7 +23,6 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  overflow-x: hidden;
   background: var(--bg);
   color: var(--fg);
   font-family: "IBM Plex Sans JP", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
@@ -49,7 +48,8 @@ a {
 }
 
 a:focus-visible,
-button:focus-visible {
+button:focus-visible,
+.table-scroll:focus-visible {
   outline: 2px solid var(--ac);
   outline-offset: 2px;
 }
@@ -683,6 +683,14 @@ img {
   font-size: 14px;
 }
 
+.event-calendar--overview .event-calendar-layout {
+  min-height: 330px;
+}
+
+.event-calendar--detail .event-calendar-layout {
+  min-height: 520px;
+}
+
 .event-calendar-featured {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -898,7 +906,9 @@ img {
 .event-calendar-empty {
   display: grid;
   gap: 6px;
+  align-content: center;
   justify-items: center;
+  min-height: 240px;
   padding: 40px 18px;
   color: var(--mu);
   text-align: center;
@@ -909,9 +919,17 @@ img {
 }
 
 .event-calendar-empty--list {
+  min-height: 130px;
   padding: 28px 18px;
   border: 1px dashed var(--line);
   border-radius: 6px;
+}
+
+@media (max-width: 900px) {
+  .event-calendar--overview .event-calendar-layout,
+  .event-calendar--detail .event-calendar-layout {
+    min-height: 0;
+  }
 }
 
 @media (max-width: 820px) {
@@ -947,7 +965,7 @@ img {
     width: 48px;
     height: 48px;
     padding: 0;
-    border: 1px solid var(--line);
+    border: 1px solid var(--mu);
     border-radius: 6px;
     background: transparent;
     cursor: pointer;

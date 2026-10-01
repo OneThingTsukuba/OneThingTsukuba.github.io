@@ -2,6 +2,7 @@
 title: OneThingってどんな団体？ 大事にしているのは「エンジニアリングの精神 × 自分の専門」
 description: OneThingは2023年から活動している筑波大学のエンジニアコミュニティです。週1のもくもく会、勉強会、LT会を開いています。情報系以外の学類の学生も参加しています。参加費は無料です。
 pubDate: 2026-08-20
+updatedDate: 2026-10-01
 category: 紹介
 author: 細井崚吾
 authorRole: OneThing 代表
