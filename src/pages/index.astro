@@ -2,22 +2,14 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EventCalendarPanel from '../components/EventCalendarPanel.astro';
 import '../styles/top.css';
-import { getCollection } from 'astro:content';
 import { getCalendarDashboard } from '../lib/calendar';
+import { formatPostDateLong, getSortedPosts } from '../lib/blog';
 import { NAV_ITEMS, SITE_DESCRIPTION, SITE_NAME_FULL, SOCIAL_LINKS, absoluteUrl } from '../lib/site';
 
 // 構造化データ用にイベントを取る。EventCalendarPanel と同じ関数で、結果はモジュール内でキャッシュされる。
 const dashboard = await getCalendarDashboard(12, { sourceIds: ['onething'] });
 
-const latestPosts = (await getCollection('blog'))
-  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
-  .slice(0, 3);
-const postDateFormatter = new Intl.DateTimeFormat('ja-JP', {
-  timeZone: 'Asia/Tokyo',
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
+const latestPosts = (await getSortedPosts()).slice(0, 3);
 
 const organizationJsonLd = {
   '@context': 'https://schema.org',
@@ -179,7 +171,7 @@ const faqJsonLd = {
                 <span class="link-row-body">
                   <strong>{post.data.title}</strong>
                   <span>
-                    <time datetime={post.data.pubDate.toISOString()}>{postDateFormatter.format(post.data.pubDate)}</time>・{post.data.category}
+                    <time datetime={post.data.pubDate.toISOString()}>{formatPostDateLong(post.data.pubDate)}</time>・{post.data.category}
                   </span>
                 </span>
                 <span class="link-row-action" aria-hidden="true">読む</span>
