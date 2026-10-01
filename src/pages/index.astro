@@ -1,7 +1,10 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EventCalendarPanel from '../components/EventCalendarPanel.astro';
 import '../styles/top.css';
+import heroLt from '../assets/hero-lt.jpg';
+import heroHackathon from '../assets/hero-hackathon.jpg';
 import { getCalendarDashboard, parseLocation, type CalendarEvent } from '../lib/calendar';
 import { formatPostDateLong, getSortedPosts } from '../lib/blog';
 import {
@@ -21,6 +24,11 @@ import {
 const dashboard = await getCalendarDashboard(12, { sourceIds: ['onething'] });
 
 const latestPosts = (await getSortedPosts()).slice(0, 3);
+
+const heroPhotos = [
+  { src: heroLt, alt: 'OneThing の LT会で、スライドを映して発表するメンバー' },
+  { src: heroHackathon, alt: 'ハッカソンに参加した OneThing のメンバー' },
+];
 
 const organizationJsonLd = {
   '@context': 'https://schema.org',
@@ -166,17 +174,32 @@ const faqJsonLd = {
         <a class="btn btn-ghost" href="/calender/">カレンダー</a>
       </div>
     </div>
-    <div class="term" role="group" aria-label="OneThing の概要">
-      <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i></div>
-      <dl>
-        <dt>拠点</dt><dd>茨城県つくば市</dd>
-        <dt>活動開始</dt><dd>2023年</dd>
-        <dt>もくもく会</dt><dd>週1回程度</dd>
-        <dt>勉強会</dt><dd>月1回</dd>
-        <dt>LT会</dt><dd>不定期</dd>
-        <dt>参加費</dt><dd>無料</dd>
-        <dt>入会手続き</dt><dd>なし</dd>
-      </dl>
+    <div class="hero-side">
+      <div class="hero-photos">
+        {heroPhotos.map((photo, index) => (
+          <Image
+            class="hero-photo"
+            src={photo.src}
+            alt={photo.alt}
+            widths={[480, 960, 1440]}
+            sizes="(max-width: 820px) calc(100vw - 32px), (max-width: 1120px) calc((100vw - 72px) / 2.15), 487px"
+            loading="eager"
+            fetchpriority={index === 0 ? 'high' : 'low'}
+          />
+        ))}
+      </div>
+      <div class="term" role="group" aria-label="OneThing の概要">
+        <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+        <dl>
+          <dt>拠点</dt><dd>茨城県つくば市</dd>
+          <dt>活動開始</dt><dd>2023年</dd>
+          <dt>もくもく会</dt><dd>週1回程度</dd>
+          <dt>勉強会</dt><dd>月1回</dd>
+          <dt>LT会</dt><dd>不定期</dd>
+          <dt>参加費</dt><dd>無料</dd>
+          <dt>入会手続き</dt><dd>なし</dd>
+        </dl>
+      </div>
     </div>
   </section>
 
