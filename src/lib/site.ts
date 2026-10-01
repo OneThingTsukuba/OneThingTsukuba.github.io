@@ -26,6 +26,12 @@ export const SOCIAL_LINKS = {
   github: 'https://github.com/OneThingTsukuba',
 } as const;
 
+export const FOUNDER = {
+  name: '細井崚吾',
+  url: 'https://ryg35.com',
+  sameAs: ['https://x.com/ryg_35'],
+} as const;
+
 /** ヘッダーのナビ。スマホではハンバーガーの中身になるので、行き先は4つに絞る。
     トップの各セクション (#purpose, #faq など) はここに入れない。
     入れると9項目になり、メニューを開いた時点でどれを押せばいいか分からなくなる。
@@ -45,3 +51,4 @@ export function absoluteUrl(path: string): string {
 /** JSON-LD で団体を指す固定の ID。各ページの organizer / publisher はこの ID で参照する。 */
 export const ORGANIZATION_ID = absoluteUrl('/#organization');
 export const WEBSITE_ID = absoluteUrl('/#website');
+export const FOUNDER_ID = absoluteUrl('/#founder');

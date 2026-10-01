@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/blog.css';
+import { FOUNDER, NAV_ITEMS, SOCIAL_LINKS } from '../lib/site';
+---
+
+<BaseLayout
+  title="プライバシーポリシー｜OneThing 筑波大学エンジニアコミュニティ"
+  description="OneThing（筑波大学エンジニアコミュニティ）のサイトで使うアクセス解析と、集める情報についての説明です。"
+  navItems={[...NAV_ITEMS]}
+>
+  <article class="post">
+    <h1>プライバシーポリシー</h1>
+
+    <div class="post-body">
+      <h2>運営</h2>
+      <p>
+        このサイトは OneThing が運営しています。OneThing は筑波大学の学生が運営するエンジニアコミュニティで、大学の公認団体ではありません。代表は{FOUNDER.name}です。
+      </p>
+
+      <h2>アクセス解析</h2>
+      <p>
+        このサイトでは Google アナリティクス 4 を使っています。Cookie を使い、閲覧したページ、参照元、おおよその地域、端末やブラウザの種類、Luma・connpass への参加リンクのクリックを、個人を特定しない形で集めます。
+      </p>
+      <p>
+        目的は、サイトの改善と、参加の導線がどれだけ使われているかを知ることです。データは Google が処理します。詳しくは Google のポリシー「<a href="https://policies.google.com/technologies/partner-sites?hl=ja">Google のサービスを使用するサイトやアプリから収集した情報の Google による使用</a>」をご覧ください。
+      </p>
+
+      <h2>計測を止める方法</h2>
+      <p>
+        ブラウザの設定で Cookie を無効にするか、<a href="https://tools.google.com/dlpage/gaoptout?hl=ja">Google アナリティクス オプトアウト アドオン</a>を使うと、計測を止められます。
+      </p>
+
+      <h2>外部サービス</h2>
+      <p>
+        イベントの申し込みは Luma または connpass で行います。そこで入力した情報は、各サービスのポリシーに従って扱われます。OneThing はこのサイトで氏名やメールアドレスを集めません。
+      </p>
+
+      <h2>お問い合わせ</h2>
+      <p>
+        このポリシーについてのお問い合わせは、<a href={SOCIAL_LINKS.x}>公式X</a>の DM にお送りください。
+      </p>
+
+      <p>制定日: 2026年10月1日</p>
+    </div>
+  </article>
+</BaseLayout>
