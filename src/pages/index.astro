@@ -1,22 +1,33 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EventCalendarPanel from '../components/EventCalendarPanel.astro';
+import { getCollection } from 'astro:content';
 import { getCalendarDashboard } from '../lib/calendar';
 import { NAV_ITEMS, SITE_DESCRIPTION, SITE_NAME_FULL, SOCIAL_LINKS, absoluteUrl } from '../lib/site';
 
 // 構造化データ用にイベントを取る。EventCalendarPanel と同じ関数で、結果はモジュール内でキャッシュされる。
 const dashboard = await getCalendarDashboard(12, { sourceIds: ['onething'] });
 
+const latestPosts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+  .slice(0, 3);
+const postDateFormatter = new Intl.DateTimeFormat('ja-JP', {
+  timeZone: 'Asia/Tokyo',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: SITE_NAME_FULL,
-  alternateName: 'OneThing',
+  alternateName: ['OneThing つくば', 'OneThing 筑波大学', 'OneThing -筑波大学エンジニアコミュニティ-'],
   url: absoluteUrl('/'),
   description: SITE_DESCRIPTION,
   foundingDate: '2023',
   areaServed: '茨城県つくば市',
-  sameAs: [SOCIAL_LINKS.x, SOCIAL_LINKS.luma, SOCIAL_LINKS.connpass],
+  sameAs: [SOCIAL_LINKS.x, SOCIAL_LINKS.luma, SOCIAL_LINKS.connpass, SOCIAL_LINKS.github],
 };
 
 // Google のイベント リッチリザルト用。日時は ISO 8601 で渡す必要がある。
@@ -88,10 +99,9 @@ const faqJsonLd = {
 ---
 
 <BaseLayout
-  title="OneThing｜筑波大学のエンジニアコミュニティ｜もくもく会・LT会・勉強会"
+  title="OneThing | 筑波大学・つくばのエンジニアサークル・コミュニティ"
   description={SITE_DESCRIPTION}
   navItems={[...NAV_ITEMS]}
-  brandAsHeading
 >
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
@@ -101,11 +111,35 @@ const faqJsonLd = {
     ))}
   </Fragment>
 
+  <section class="hero">
+    <div class="hero-text">
+      <h1>筑波大学の<span class="accent">エンジニア</span>コミュニティ<br /> OneThing</h1>
+      <p class="lead">週1のもくもく会とLT会。初心者歓迎、参加費無料。</p>
+      <div class="cta">
+        <a class="btn" href={SOCIAL_LINKS.luma}>イベント一覧を見る</a>
+        <a class="btn btn-ghost" href="/calender/">カレンダー</a>
+      </div>
+    </div>
+    <div class="term" role="group" aria-label="OneThing の概要">
+      <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+      <dl>
+        <dt>拠点</dt><dd>茨城県つくば市</dd>
+        <dt>活動開始</dt><dd>2023年</dd>
+        <dt>もくもく会</dt><dd>週1回程度</dd>
+        <dt>勉強会</dt><dd>月1回</dd>
+        <dt>LT会</dt><dd>不定期</dd>
+        <dt>参加費</dt><dd>無料</dd>
+        <dt>入会手続き</dt><dd>なし</dd>
+      </dl>
+    </div>
+  </section>
+
   <section id="onething">
     <h2>OneThingとは</h2>
     <p>
-      2023年より活動している、筑波大学のエンジニアコミュニティです。つくば市を拠点に、週1回のもくもく会と、月に数回の勉強会・LT会を開いています。
+      2023年より活動している、筑波大学のエンジニアコミュニティです。つくば市を拠点に、週1回のもくもく会、月1回の勉強会、不定期のLT会を開いています。
     </p>
+    <p>筑波大学の学生が運営するエンジニアサークルです（大学の公認団体ではありません）。</p>
   </section>
 
   <section id="purpose">
@@ -126,14 +160,14 @@ const faqJsonLd = {
       <li class="activity-card">
         <div class="activity-card-head">
           <h3>勉強会</h3>
-          <span class="activity-cadence">月に数回</span>
+          <span class="activity-cadence">月1回</span>
         </div>
         <p>知りたいことを、知っている人が話す形式。これまでのトピックは Claude Code の使い方と git command。</p>
       </li>
       <li class="activity-card">
         <div class="activity-card-head">
           <h3>LT会</h3>
-          <span class="activity-cadence">月に数回</span>
+          <span class="activity-cadence">不定期</span>
         </div>
         <p>1人5分の持ち時間で、作ったものを話す会。飛び入りの発表も歓迎しています。</p>
       </li>
@@ -144,14 +178,47 @@ const faqJsonLd = {
     <EventCalendarPanel variant="overview" heading="直近の活動予定" headingId="top-event-calendar" />
   </section>
 
-  <section id="participation">
+  {
+    latestPosts.length > 0 && (
+      <section id="latest-posts">
+        <h2>最新の記事</h2>
+        <ul class="link-rows">
+          {latestPosts.map((post) => (
+            <li>
+              <a class="link-row" href={`/blog/${post.id}/`}>
+                <span class="link-row-body">
+                  <strong>{post.data.title}</strong>
+                  <span>
+                    <time datetime={post.data.pubDate.toISOString()}>{postDateFormatter.format(post.data.pubDate)}</time>・{post.data.category}
+                  </span>
+                </span>
+                <span class="link-row-action" aria-hidden="true">読む</span>
+              </a>
+            </li>
+          ))}
+          <li>
+            <a class="link-row" href="/blog/">
+              <span class="link-row-body">
+                <strong>記事一覧</strong>
+                <span>活動の紹介、開催報告、技術の解説</span>
+              </span>
+              <span class="link-row-action" aria-hidden="true">開く</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+    )
+  }
+
+  <section id="participation" class="join">
     <h2>OneThingへの参加方法</h2>
     <p>
       事前の入会手続きはありません。以下のイベント一覧から気になる回を選んで、当日来てください。
     </p>
-    <p>
-      <a href={SOCIAL_LINKS.luma}>イベント一覧を見る</a>
-    </p>
+    <div class="cta">
+      <a class="btn" href={SOCIAL_LINKS.luma}>イベント一覧を見る</a>
+      <a class="btn btn-ghost" href={SOCIAL_LINKS.x}>公式Xで問い合わせ</a>
+    </div>
   </section>
 
   <section id="faq">
