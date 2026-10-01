@@ -5,10 +5,11 @@ import '../styles/top.css';
 import heroLt from '../assets/hero-lt.jpg';
 import heroHackathon from '../assets/hero-hackathon.jpg';
 import {
-  formatRelativeDay,
-  formatTimeRange,
-  formatWeekday,
+  buildUpcomingRows,
+  buildSessionNote,
+  formatFetchedAt,
   getCalendarDashboard,
+  parseSessionNumber,
   parseLocation,
   type CalendarEvent,
 } from '../lib/calendar';
@@ -50,36 +51,14 @@ const heroPhotos = [
   },
 ];
 
-const jstMonthDay = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric' });
-const jstLongDate = new Intl.DateTimeFormat('ja-JP', {
-  timeZone: 'Asia/Tokyo',
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
-
-const mokumokuEvents = dashboard.events.filter((event) => event.kind === 'mokumoku').slice(0, 4);
-const mokumokuRows = mokumokuEvents.map((event) => {
-  const relative = formatRelativeDay(event, dashboard.fetchedAt);
-  return {
-    event,
-    date: jstMonthDay.format(event.start).replace('月', '/').replace('日', ''),
-    weekday: formatWeekday(event.start),
-    time: formatTimeRange(event).replace(/\s+/g, ''),
-    marker: relative === '今日' || relative === '開催中' ? relative : null,
-  };
-});
-
-const nextMokumoku = mokumokuEvents[0] ?? null;
-const sessionNumberMatch = nextMokumoku?.summary.match(/#\s*(\d+)/);
-const sessionNumber = sessionNumberMatch ? Number(sessionNumberMatch[1]) : null;
-const sessionIsToday = Boolean(mokumokuRows[0]?.marker);
-const sessionNote =
-  nextMokumoku && sessionNumber !== null
-    ? sessionIsToday
-      ? `${jstLongDate.format(nextMokumoku.start)}の回で${sessionNumber}回目になりました。`
-      : `次の${jstLongDate.format(nextMokumoku.start)}の回で${sessionNumber}回目になります。`
-    : null;
+const upcomingRows = buildUpcomingRows(dashboard.events, dashboard.fetchedAt);
+const [nextMokumokuRow] = buildUpcomingRows(
+  dashboard.events.filter((event) => event.kind === 'mokumoku'),
+  dashboard.fetchedAt,
+  1,
+);
+const sessionNumber = nextMokumokuRow ? parseSessionNumber(nextMokumokuRow.event.summary) : null;
+const sessionNote = buildSessionNote(nextMokumokuRow, dashboard.fetchedAt);
 
 const organizationJsonLd = {
   '@context': 'https://schema.org',
@@ -240,7 +219,7 @@ const faqJsonLd = {
           fetchpriority={photo.priority}
         />
       ))}
-      <p class="since num" aria-label="2023年から活動">2023<small>から活動しています</small></p>
+      <p class="since num">2023<small>から活動しています</small></p>
     </div>
   </section>
 
@@ -256,7 +235,7 @@ const faqJsonLd = {
     <h2 class="section-title" id="activities-heading">基本は、木曜の夜。</h2>
     <div class:list={['moku', { 'moku--no-number': sessionNumber === null }]}>
       {sessionNumber !== null && (
-        <p class="moku-number num" aria-label={`${sessionNumber}回目`}><span>#</span>{sessionNumber}</p>
+        <p class="moku-number num" aria-hidden="true"><span>#</span>{sessionNumber}</p>
       )}
       <div>
         <h3>もくもく会</h3>
@@ -301,7 +280,7 @@ const faqJsonLd = {
   <section class="join" id="participation" aria-labelledby="join-heading">
     <div class="join-top">
       <h2 id="join-heading">PC1台で、<br />来てください。</h2>
-      <p class="join-zero num" aria-label="参加費0円">0<span>円</span></p>
+      <p class="join-zero num">0<span>円</span></p>
     </div>
     <ul class="join-facts">
       <li>参加費無料</li>
@@ -311,12 +290,12 @@ const faqJsonLd = {
       <li>つくば周辺で働くエンジニアも参加</li>
       <li>不安なら公式X の DM で聞けます</li>
     </ul>
-    <div class="join-events">
-      <h3>次のもくもく会</h3>
+    <div class="join-events" data-link-location="join-events">
+      <h3>次の予定</h3>
       {
-        mokumokuRows.length > 0 ? (
+        upcomingRows.length > 0 ? (
           <ul class="join-event-list">
-            {mokumokuRows.map((row) => (
+            {upcomingRows.map((row) => (
               <li>
                 <time class="join-event-date" datetime={row.event.start.toISOString()}>
                   {row.date}
@@ -337,6 +316,9 @@ const faqJsonLd = {
           <p class="join-event-empty">次の回は決まり次第、カレンダーに載せます。</p>
         )
       }
+      <p class="join-events-updated">
+        最終更新 <time datetime={dashboard.fetchedAt.toISOString()}>{formatFetchedAt(dashboard.fetchedAt)}</time>
+      </p>
     </div>
     <div class="cta join-cta" data-link-location="join">
       <a class="btn btn-dark" href={SOCIAL_LINKS.luma}>イベント一覧を見る</a>

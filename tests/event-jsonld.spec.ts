@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseLocation } from '../src/lib/calendar';
+import { buildUpcomingRows, buildSessionNote, parseLocation, parseSessionNumber, type CalendarEvent } from '../src/lib/calendar';
 
 const SITE = fs.readFileSync(path.join(process.cwd(), 'astro.config.mjs'), 'utf8').match(/site:\s*'([^']+)'/)?.[1];
 const ORGANIZATION_ID = new URL('/#organization', SITE).toString();
@@ -70,4 +70,66 @@ test('トップの Event の JSON-LD は必要な項目を全件持ち、終わ�
       expect(event.location.address.streetAddress, event.name).toBeTruthy();
     }
   }
+});
+
+const mokumoku = (summary: string, start: string, end: string, kind: CalendarEvent['kind'] = 'mokumoku'): CalendarEvent => ({
+  uid: summary,
+  summary,
+  description: '',
+  shortDescription: '',
+  location: '',
+  locationShort: '株式会社ゲームシスト',
+  start: new Date(start),
+  end: new Date(end),
+  allDay: false,
+  kind,
+  statusLabel: '',
+  url: null,
+  source: { id: 'onething', name: 'OneThing', color: '#2ee89e' },
+});
+
+test('もくもく会の回数を名前から読む', () => {
+  expect(parseSessionNumber('もくもく会 #53')).toBe(53);
+  expect(parseSessionNumber('もくもく会 # 53')).toBe(53);
+  expect(parseSessionNumber('もくもく会 ＃53')).toBe(53);
+  expect(parseSessionNumber('第53回 もくもく会')).toBe(53);
+  expect(parseSessionNumber('もくもく会')).toBeNull();
+});
+
+test('次のもくもく会の行と回数の文は時刻で変わる', () => {
+  const event = mokumoku('もくもく会 #53', '2026-10-01T09:30:00Z', '2026-10-01T12:00:00Z');
+  const before = new Date('2026-10-01T03:00:00Z');
+  const during = new Date('2026-10-01T10:00:00Z');
+
+  const [todayRow] = buildUpcomingRows([event], before);
+  expect(todayRow).toMatchObject({ date: '10/1', weekday: '木', time: '18:30-21:00', marker: '今日' });
+  expect(buildSessionNote(todayRow, before)).toBe('今日の回で53回目になります。');
+
+  const [liveRow] = buildUpcomingRows([event], during);
+  expect(liveRow.marker).toBe('開催中');
+  expect(buildSessionNote(liveRow, during)).toBe('2026年10月1日の回で53回目になりました。');
+
+  const future = new Date('2026-09-28T03:00:00Z');
+  const [futureRow] = buildUpcomingRows([event], future);
+  expect(futureRow.marker).toBeNull();
+  expect(buildSessionNote(futureRow, future)).toBe('次の2026年10月1日の回で53回目になります。');
+
+  expect(buildUpcomingRows([], before)).toEqual([]);
+  expect(buildSessionNote(undefined, before)).toBeNull();
+  expect(buildSessionNote(buildUpcomingRows([mokumoku('もくもく会', event.start.toISOString(), event.end.toISOString())], before)[0], before)).toBeNull();
+});
+
+test('次の予定は種類を問わず開始順に最大4件', () => {
+  const now = new Date('2026-09-28T03:00:00Z');
+  const rows = buildUpcomingRows(
+    [
+      mokumoku('もくもく会 #55', '2026-10-15T09:30:00Z', '2026-10-15T12:00:00Z'),
+      mokumoku('LT会 #6', '2026-10-03T09:00:00Z', '2026-10-03T11:00:00Z', 'lt'),
+      mokumoku('もくもく会 #54', '2026-10-08T09:30:00Z', '2026-10-08T12:00:00Z'),
+      mokumoku('勉強会', '2026-10-10T09:00:00Z', '2026-10-10T11:00:00Z', 'study'),
+      mokumoku('もくもく会 #56', '2026-10-22T09:30:00Z', '2026-10-22T12:00:00Z'),
+    ],
+    now,
+  );
+  expect(rows.map((row) => row.event.summary)).toEqual(['LT会 #6', 'もくもく会 #54', '勉強会', 'もくもく会 #55']);
 });

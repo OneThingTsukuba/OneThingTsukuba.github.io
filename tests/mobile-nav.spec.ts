@@ -131,7 +131,14 @@ test.describe('JS 無効', () => {
     await expect(links.first()).toBeVisible();
   });
 
-  test('JS 無しでも記事一覧に遷移できる', async ({ page }) => {
+  test('ナビを開いたままのヘッダーはスクロールで画面上部に残らない', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    const box = await page.locator('.site-header').boundingBox();
+    expect(box!.y + box!.height).toBeLessThanOrEqual(0);
+  });
+
+    test('JS 無しでも記事一覧に遷移できる', async ({ page }) => {
     await page.goto('/');
     await page.locator('#site-nav a', { hasText: '記事' }).click();
     await expect(page).toHaveURL(/\/blog\/$/);
@@ -147,6 +154,16 @@ test.describe('デスクトップ幅 (1280px)', () => {
     await expect(page.locator('#site-nav')).toBeVisible();
     await expect(page.locator('#site-nav a')).toHaveCount(NAV_LABELS.length);
   });
+});
+
+test.describe('現在地', () => {
+  for (const [url, label] of [['/', 'トップ'], ['/blog/', '記事']]) {
+    test(`${url} ではナビの${label}に aria-current が付く`, async ({ page }) => {
+      await page.setViewportSize(DESKTOP);
+      await page.goto(url);
+      await expect(page.locator('#site-nav a[aria-current="page"]')).toHaveText(label);
+    });
+  }
 });
 
 test.describe('幅の境界', () => {

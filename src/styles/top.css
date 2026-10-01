@@ -3,6 +3,7 @@
   display: grid;
   grid-template-columns: 1.25fr 1fr;
   padding: clamp(40px, 7vw, 96px) 0 0 var(--gut);
+  overflow-x: clip;
 }
 
 .hero-text {
@@ -189,12 +190,8 @@
   padding: 64px 0;
 }
 
-.act p {
+.act p:not(.meta, .act-number, .act-quote) {
   color: var(--mu);
-}
-
-.act .meta {
-  color: var(--fg);
 }
 
 .act--lt {
@@ -206,7 +203,7 @@
   border-right: 1px solid var(--line);
 }
 
-.act .act-number {
+.act-number {
   color: var(--fg);
   font-size: clamp(120px, 16vw, 240px);
 }
@@ -223,7 +220,7 @@
   padding-left: clamp(24px, 4vw, 64px);
 }
 
-.act .act-quote {
+.act-quote {
   margin: 14px 0;
   color: var(--fg);
   font-size: 21px;
@@ -271,8 +268,20 @@
   color: var(--on);
 }
 
-.join a {
-  color: var(--on);
+.join-event-title a,
+.join-cta .text-link {
+  color: inherit;
+}
+
+.join a:focus-visible,
+.join button:focus-visible {
+  outline-color: var(--on);
+}
+
+.join-events-updated {
+  margin-top: 12px;
+  font-size: 14px;
+  opacity: 0.75;
 }
 
 .join-top {
@@ -402,13 +411,6 @@
   gap: 24px;
 }
 
-.join .text-link {
-  color: var(--on);
-}
-
-.join .btn-dark {
-  color: var(--fg);
-}
 
 .posts,
 .faq,
@@ -468,7 +470,7 @@
 
 .faq h2 {
   position: sticky;
-  top: 90px;
+  top: calc(var(--header-h) + 26px);
 }
 
 .faq-list {
@@ -513,7 +515,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .hero-text > * {
+  .hero-text > :not(h1) {
     animation: hero-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
 

@@ -12,14 +12,14 @@ import {
 type CalendarVariant = 'overview' | 'detail';
 
 interface Props {
-  variant?: CalendarVariant;
+  variant: CalendarVariant;
   heading?: string;
   headingId?: string;
   limit?: number;
 }
 
 const {
-  variant = 'overview',
+  variant,
   heading,
   headingId = `event-calendar-${variant}`,
   limit,

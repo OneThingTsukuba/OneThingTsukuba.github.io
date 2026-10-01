@@ -42,8 +42,7 @@
 
 .post-meta time {
   color: var(--ac);
-  font-family: var(--font-num);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .post-category {

@@ -523,3 +523,55 @@ function toHalfWidth(text: string): string {
     .replace(/[０-９]/g, (digit) => String.fromCharCode(digit.charCodeAt(0) - 0xfee0))
     .replace(/[−－‐]/g, '-');
 }
+
+export type UpcomingRow = {
+  event: CalendarEvent;
+  date: string;
+  weekday: string;
+  time: string;
+  marker: '今日' | '開催中' | null;
+};
+
+export function parseSessionNumber(summary: string): number | null {
+  const match = summary.normalize('NFKC').match(/#\s*(\d+)|第\s*(\d+)\s*回/);
+  const digits = match?.[1] ?? match?.[2];
+  return digits ? Number(digits) : null;
+}
+
+export function buildUpcomingRows(events: CalendarEvent[], now: Date, limit = 4): UpcomingRow[] {
+  return [...events]
+    .sort((a, b) => a.start.getTime() - b.start.getTime())
+    .slice(0, limit)
+    .map((event) => {
+      const relative = formatRelativeDay(event, now);
+      return {
+        event,
+        date: `${new Intl.DateTimeFormat('en-US', { timeZone: TOKYO_TIME_ZONE, month: 'numeric', day: 'numeric' }).format(event.start)}`,
+        weekday: formatWeekday(event.start),
+        time: formatTimeRange(event).replace(/\s+/g, ''),
+        marker: relative === '今日' || relative === '開催中' ? relative : null,
+      };
+    });
+}
+
+export function buildSessionNote(row: UpcomingRow | undefined, now: Date): string | null {
+  if (!row) return null;
+  const number = parseSessionNumber(row.event.summary);
+  if (number === null) return null;
+  if (row.event.start.getTime() <= now.getTime()) {
+    return `${formatLongDate(row.event.start)}の回で${number}回目になりました。`;
+  }
+  if (row.marker === '今日') {
+    return `今日の回で${number}回目になります。`;
+  }
+  return `次の${formatLongDate(row.event.start)}の回で${number}回目になります。`;
+}
+
+function formatLongDate(date: Date): string {
+  return new Intl.DateTimeFormat('ja-JP', {
+    timeZone: TOKYO_TIME_ZONE,
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date);
+}
