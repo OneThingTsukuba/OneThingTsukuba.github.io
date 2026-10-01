@@ -25,6 +25,46 @@
   font-size: 17px;
 }
 
+.hero-side {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.hero-photos {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--su);
+}
+
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-photo + .hero-photo {
+  opacity: 0;
+  animation: hero-photo-swap 12s ease-in-out infinite;
+}
+
+@keyframes hero-photo-swap {
+  0%, 42% { opacity: 0; }
+  50%, 92% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-photo + .hero-photo {
+    animation: none;
+  }
+}
+
 .term {
   overflow: hidden;
   border: 1px solid var(--line);
