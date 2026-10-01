@@ -64,3 +64,23 @@ for (const width of [375, 900, 1400]) {
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
   });
 }
+
+for (const width of [901, 1000, 1280, 1400, 1920]) {
+  test(`${width}px 幅で「2023」が写真に重ならず、色も反転させない`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    await page.evaluate(() => document.fonts.ready);
+    const result = await page.evaluate(() => {
+      const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+      const since = box('.since');
+      const overlaps = (other: DOMRect) =>
+        !(since.right <= other.left || since.left >= other.right || since.bottom <= other.top || since.top >= other.bottom);
+      return {
+        main: overlaps(box('.hero-photo--main')),
+        sub: overlaps(box('.hero-photo--sub')),
+        blend: getComputedStyle(document.querySelector('.since')!).mixBlendMode,
+      };
+    });
+    expect(result).toEqual({ main: false, sub: false, blend: 'normal' });
+  });
+}
