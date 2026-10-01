@@ -23,6 +23,8 @@ interface Props {
   /** og:type。トップは website、記事ページは article。 */
   ogType?: 'website' | 'article';
   navItems?: NavItem[];
+  /** トップのように全幅のセクションを並べるページは true。それ以外は余白付きの1カラム */
+  fullBleed?: boolean;
 }
 
 const {
@@ -31,7 +33,9 @@ const {
   ogImage = OG_IMAGE_PATH,
   ogType = 'website',
   navItems = [],
+  fullBleed = false,
 } = Astro.props;
+const currentPath = Astro.url.pathname;
 
 // canonical は絶対URLでなければ意味がない。Astro.url はビルド時に astro.config の site を基準に解決される。
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? absoluteUrl('/')).toString();
@@ -83,7 +87,7 @@ const gaMeasurementId = typeof gaInput === 'string' && /^G-[A-Z0-9]+$/.test(gaIn
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Archivo:wght@800;900&display=swap"
       rel="stylesheet"
     />
 
@@ -149,10 +153,7 @@ const gaMeasurementId = typeof gaInput === 'string' && /^G-[A-Z0-9]+$/.test(gaIn
             {/* alt は空にする。直後に「OneThing」のテキストがあるので、
                 alt を入れると読み上げが「OneThing OneThing」と二重になる */}
             <img class="header-logo" src="/images/logo-mark.png" alt="" width="447" height="512" />
-            <span class="header-text">
-              <span class="main-title">OneThing</span>
-              <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
-            </span>
+            <span>OneThing</span>
           </a>
         </p>
         {
@@ -174,7 +175,7 @@ const gaMeasurementId = typeof gaInput === 'string' && /^G-[A-Z0-9]+$/.test(gaIn
                 <ul>
                   {navItems.map((item) => (
                     <li>
-                      <a href={item.href}>{item.label}</a>
+                      <a href={item.href} aria-current={item.href === currentPath ? 'page' : undefined}>{item.label}</a>
                     </li>
                   ))}
                 </ul>
@@ -185,21 +186,27 @@ const gaMeasurementId = typeof gaInput === 'string' && /^G-[A-Z0-9]+$/.test(gaIn
       </div>
     </header>
 
-    <main class="site-main" id="main">
+    <main class:list={['site-main', fullBleed ? 'site-main--bleed' : 'site-main--page']} id="main">
       <slot />
     </main>
 
     <footer class="site-footer">
-      <div class="site-footer-inner">
-        <p class="site-footer-name">{SITE_NAME_FULL}</p>
+      <div class="site-footer-nav">
         <ul class="site-footer-links" data-link-location="footer">
           <li><a href={SOCIAL_LINKS.x}>公式X</a></li>
           <li><a href={SOCIAL_LINKS.luma}>Luma</a></li>
           <li><a href={SOCIAL_LINKS.connpass}>connpass</a></li>
           <li><a href={SOCIAL_LINKS.github}>GitHub</a></li>
         </ul>
-        <p>お問い合わせは公式XのDMにて。</p>
-        <p><a href="/privacy/">プライバシーポリシー</a></p>
+        <ul>
+          <li><a href="/calender/">カレンダー</a></li>
+          <li><a href="/blog/">記事</a></li>
+          <li><a href="/privacy/">プライバシーポリシー</a></li>
+        </ul>
+      </div>
+      <p class="site-footer-wordmark" aria-hidden="true">OneThing</p>
+      <div class="site-footer-meta">
+        <p>{SITE_NAME_FULL} は大学の公認団体ではありません。お問い合わせは公式XのDMにて。</p>
         <p>&copy; {currentYear} OneThing All Rights Reserved.</p>
       </div>
     </footer>

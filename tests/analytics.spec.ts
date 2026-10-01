@@ -76,12 +76,20 @@ test.describe('測定 ID ありのビルド', () => {
 
     await page.locator('[data-link-location="hero"] a[href*="luma.com"]').click();
     await page.locator('[data-link-location="join"] a[href*="luma.com"]').click();
+    await page.evaluate(() => {
+      const link = document.createElement('a');
+      link.href = 'https://luma.com/sample-event';
+      link.textContent = 'luma sample event';
+      document.querySelector('[data-link-location="join-events"]')?.append(link);
+    });
+    await page.getByText('luma sample event').click();
     await page.locator('.site-footer-links a[href*="connpass.com"]').click();
     await page.locator('.site-footer-links a[href*="luma.com"]').click();
 
     expect(await joinClicks(page)).toEqual([
       { link_domain: 'luma.com', link_location: 'hero' },
       { link_domain: 'luma.com', link_location: 'join' },
+      { link_domain: 'luma.com', link_location: 'join-events' },
       { link_domain: 'onething-lt.connpass.com', link_location: 'footer' },
       { link_domain: 'luma.com', link_location: 'footer' },
     ]);
