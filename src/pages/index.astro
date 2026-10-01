@@ -2,9 +2,18 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EventCalendarPanel from '../components/EventCalendarPanel.astro';
 import '../styles/top.css';
-import { getCalendarDashboard } from '../lib/calendar';
+import { getCalendarDashboard, parseLocation, type CalendarEvent } from '../lib/calendar';
 import { formatPostDateLong, getSortedPosts } from '../lib/blog';
-import { NAV_ITEMS, SITE_DESCRIPTION, SITE_NAME_FULL, SOCIAL_LINKS, absoluteUrl } from '../lib/site';
+import {
+  NAV_ITEMS,
+  OG_IMAGE_PATH,
+  ORGANIZATION_ID,
+  SITE_DESCRIPTION,
+  SITE_NAME_FULL,
+  SOCIAL_LINKS,
+  WEBSITE_ID,
+  absoluteUrl,
+} from '../lib/site';
 
 // 構造化データ用にイベントを取る。EventCalendarPanel と同じ関数で、結果はモジュール内でキャッシュされる。
 const dashboard = await getCalendarDashboard(12, { sourceIds: ['onething'] });
@@ -14,6 +23,7 @@ const latestPosts = (await getSortedPosts()).slice(0, 3);
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
+  '@id': ORGANIZATION_ID,
   name: SITE_NAME_FULL,
   alternateName: ['OneThing', 'OneThing Tsukuba'],
   url: absoluteUrl('/'),
@@ -21,6 +31,48 @@ const organizationJsonLd = {
   foundingDate: '2023',
   areaServed: '茨城県つくば市',
   sameAs: [SOCIAL_LINKS.x, SOCIAL_LINKS.luma, SOCIAL_LINKS.connpass, SOCIAL_LINKS.github],
+};
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': WEBSITE_ID,
+  name: SITE_NAME_FULL,
+  url: absoluteUrl('/'),
+  inLanguage: 'ja',
+  publisher: { '@id': ORGANIZATION_ID },
+};
+
+const EVENT_FALLBACK_DESCRIPTIONS: Record<CalendarEvent['kind'], string> = {
+  mokumoku: 'OneThing が週1回程度つくば市で開くもくもく会です。各自が手を動かして作業を進めます。初心者歓迎、参加費無料。',
+  study: 'OneThing が月1回開く勉強会です。初心者歓迎、参加費無料。',
+  lt: 'OneThing が不定期に開く LT会です。初心者歓迎、参加費無料。',
+  project: 'OneThing（筑波大学エンジニアコミュニティ）のイベントです。初心者歓迎、参加費無料。',
+  event: 'OneThing（筑波大学エンジニアコミュニティ）のイベントです。初心者歓迎、参加費無料。',
+};
+
+const eventPlace = (event: CalendarEvent) => {
+  const { name, address } = parseLocation(event.location);
+
+  return {
+    '@type': 'Place',
+    name: name || '茨城県つくば市',
+    address: address
+      ? { '@type': 'PostalAddress', addressCountry: 'JP', ...address }
+      : {
+          '@type': 'PostalAddress',
+          addressLocality: 'つくば市',
+          addressRegion: '茨城県',
+          addressCountry: 'JP',
+        },
+  };
+};
+
+const organizationRef = {
+  '@type': 'Organization',
+  '@id': ORGANIZATION_ID,
+  name: SITE_NAME_FULL,
+  url: absoluteUrl('/'),
 };
 
 // Google のイベント リッチリザルト用。日時は ISO 8601 で渡す必要がある。
@@ -32,23 +84,19 @@ const eventsJsonLd = dashboard.events.map((event) => ({
   endDate: event.end.toISOString(),
   eventStatus: 'https://schema.org/EventScheduled',
   eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-  location: {
-    '@type': 'Place',
-    name: event.location || '茨城県つくば市',
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'つくば市',
-      addressRegion: '茨城県',
-      addressCountry: 'JP',
-    },
-  },
-  organizer: {
-    '@type': 'Organization',
-    name: SITE_NAME_FULL,
-    url: absoluteUrl('/'),
+  location: eventPlace(event),
+  image: [absoluteUrl(OG_IMAGE_PATH)],
+  description: event.shortDescription || EVENT_FALLBACK_DESCRIPTIONS[event.kind],
+  organizer: organizationRef,
+  performer: organizationRef,
+  offers: {
+    '@type': 'Offer',
+    price: 0,
+    priceCurrency: 'JPY',
+    availability: 'https://schema.org/InStock',
+    url: event.url ?? SOCIAL_LINKS.luma,
   },
   ...(event.url ? { url: event.url } : {}),
-  ...(event.shortDescription ? { description: event.shortDescription } : {}),
 }));
 
 const faqItems = [
@@ -93,6 +141,7 @@ const faqJsonLd = {
 >
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
     <script is:inline type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
     {eventsJsonLd.map((event) => (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(event)} />
@@ -103,7 +152,7 @@ const faqJsonLd = {
     <div>
       <h1>筑波大学の<span class="accent">エンジニア</span>コミュニティ<br /> OneThing</h1>
       <p class="lead">週1回程度のもくもく会、月1回の勉強会、不定期のLT会。初心者歓迎、参加費無料。</p>
-      <div class="cta">
+      <div class="cta" data-link-location="hero">
         <a class="btn" href={SOCIAL_LINKS.luma}>イベント一覧を見る</a>
         <a class="btn btn-ghost" href="/calender/">カレンダー</a>
       </div>
@@ -197,7 +246,7 @@ const faqJsonLd = {
     <p>
       事前の入会手続きはありません。以下のイベント一覧から気になる回を選んで、当日来てください。
     </p>
-    <div class="cta">
+    <div class="cta" data-link-location="join">
       <a class="btn" href={SOCIAL_LINKS.luma}>イベント一覧を見る</a>
       <a class="btn btn-ghost" href={SOCIAL_LINKS.x}>公式Xで問い合わせ</a>
     </div>

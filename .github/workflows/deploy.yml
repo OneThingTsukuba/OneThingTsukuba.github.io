@@ -25,6 +25,9 @@ jobs:
 
       - name: Install, build, and upload site
         uses: withastro/action@v6
+        env:
+          # GA4 の測定 ID。リポジトリ変数が未設定ならビルドに計測タグは入らない
+          PUBLIC_GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
 
   deploy:
     needs: build
