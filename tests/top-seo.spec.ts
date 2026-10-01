@@ -195,3 +195,10 @@ test('検索エンジンの所有権確認タグが全ページにある', async
     );
   }
 });
+
+test('最新の記事には記事のカードだけを置き、記事一覧へはヘッダーのナビから行く', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#latest-posts a[href="/blog/"]')).toHaveCount(0);
+  await expect(page.locator('#latest-posts a.link-row')).toHaveCount(readPosts().slice(0, 3).length);
+  await expect(page.locator('#site-nav a[href="/blog/"]')).toHaveCount(1);
+});
