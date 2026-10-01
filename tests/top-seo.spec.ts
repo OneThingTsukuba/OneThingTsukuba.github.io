@@ -124,3 +124,35 @@ test('フッターの外部リンク', async ({ page }) => {
   );
   expect(hrefs).toEqual([SOCIAL_LINKS.x, SOCIAL_LINKS.luma, SOCIAL_LINKS.connpass, SOCIAL_LINKS.github]);
 });
+
+const SITE = fs.readFileSync(path.join(process.cwd(), 'astro.config.mjs'), 'utf8').match(/site:\s*'([^']+)'/)?.[1];
+const ORGANIZATION_ID = new URL('/#organization', SITE).toString();
+
+test('Organization は固定の @id を持ち、WebSite の publisher と Event の organizer が同じ @id を指す', async ({ page }) => {
+  await page.goto('/');
+  const blocks = await readJsonLd(page);
+  const orgs = blocks.filter((block) => block['@type'] === 'Organization');
+  expect(orgs).toHaveLength(1);
+  expect(orgs[0]['@id']).toBe(ORGANIZATION_ID);
+
+  const website = blocks.find((block) => block['@type'] === 'WebSite') as { publisher: { '@id': string } } | undefined;
+  expect(website?.publisher['@id']).toBe(ORGANIZATION_ID);
+
+  // イベントはビルド時にカレンダーから取るので0件のこともある。あれば全件を検証する
+  const events = blocks.filter((block) => block['@type'] === 'Event') as { organizer: { '@id': string } }[];
+  for (const event of events) {
+    expect(event.organizer['@id']).toBe(ORGANIZATION_ID);
+  }
+});
+
+test('BlogPosting の publisher は Organization と同じ @id を指す', async ({ page }) => {
+  const posts = readPosts();
+  expect(posts.length).toBeGreaterThan(0);
+  for (const post of posts) {
+    await page.goto(`/blog/${post.slug}/`);
+    const article = (await readJsonLd(page)).find((block) => block['@type'] === 'BlogPosting') as
+      | { publisher: { '@id': string } }
+      | undefined;
+    expect(article?.publisher['@id']).toBe(ORGANIZATION_ID);
+  }
+});

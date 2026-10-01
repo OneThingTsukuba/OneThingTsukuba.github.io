@@ -41,3 +41,7 @@ export const NAV_ITEMS = [
 export function absoluteUrl(path: string): string {
   return new URL(path, SITE_URL).toString();
 }
+
+/** JSON-LD で団体を指す固定の ID。各ページの organizer / publisher はこの ID で参照する。 */
+export const ORGANIZATION_ID = absoluteUrl('/#organization');
+export const WEBSITE_ID = absoluteUrl('/#website');

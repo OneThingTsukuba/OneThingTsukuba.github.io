@@ -4,7 +4,15 @@ import EventCalendarPanel from '../components/EventCalendarPanel.astro';
 import '../styles/top.css';
 import { getCalendarDashboard } from '../lib/calendar';
 import { formatPostDateLong, getSortedPosts } from '../lib/blog';
-import { NAV_ITEMS, SITE_DESCRIPTION, SITE_NAME_FULL, SOCIAL_LINKS, absoluteUrl } from '../lib/site';
+import {
+  NAV_ITEMS,
+  ORGANIZATION_ID,
+  SITE_DESCRIPTION,
+  SITE_NAME_FULL,
+  SOCIAL_LINKS,
+  WEBSITE_ID,
+  absoluteUrl,
+} from '../lib/site';
 
 // 構造化データ用にイベントを取る。EventCalendarPanel と同じ関数で、結果はモジュール内でキャッシュされる。
 const dashboard = await getCalendarDashboard(12, { sourceIds: ['onething'] });
@@ -14,6 +22,7 @@ const latestPosts = (await getSortedPosts()).slice(0, 3);
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
+  '@id': ORGANIZATION_ID,
   name: SITE_NAME_FULL,
   alternateName: ['OneThing', 'OneThing Tsukuba'],
   url: absoluteUrl('/'),
@@ -21,6 +30,16 @@ const organizationJsonLd = {
   foundingDate: '2023',
   areaServed: '茨城県つくば市',
   sameAs: [SOCIAL_LINKS.x, SOCIAL_LINKS.luma, SOCIAL_LINKS.connpass, SOCIAL_LINKS.github],
+};
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': WEBSITE_ID,
+  name: SITE_NAME_FULL,
+  url: absoluteUrl('/'),
+  inLanguage: 'ja',
+  publisher: { '@id': ORGANIZATION_ID },
 };
 
 // Google のイベント リッチリザルト用。日時は ISO 8601 で渡す必要がある。
@@ -44,6 +63,7 @@ const eventsJsonLd = dashboard.events.map((event) => ({
   },
   organizer: {
     '@type': 'Organization',
+    '@id': ORGANIZATION_ID,
     name: SITE_NAME_FULL,
     url: absoluteUrl('/'),
   },
@@ -93,6 +113,7 @@ const faqJsonLd = {
 >
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
     <script is:inline type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
     {eventsJsonLd.map((event) => (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(event)} />
