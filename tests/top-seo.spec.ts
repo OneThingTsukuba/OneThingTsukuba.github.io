@@ -157,6 +157,31 @@ test('BlogPosting の publisher は Organization と同じ @id を指す', async
   }
 });
 
+const FOUNDER_ID = new URL('/#founder', SITE).toString();
+const FOUNDER = { name: '細井崚吾', url: 'https://ryg35.com', sameAs: ['https://x.com/ryg_35'] };
+
+test('Organization の founder は代表の Person で、固定の @id と url / sameAs を持つ', async ({ page }) => {
+  await page.goto('/');
+  const org = (await readJsonLd(page)).find((block) => block['@type'] === 'Organization') as
+    | { founder: Record<string, unknown> }
+    | undefined;
+  expect(org?.founder).toEqual({ '@type': 'Person', '@id': FOUNDER_ID, ...FOUNDER });
+});
+
+test('代表が書いた記事の author は founder と同じ @id を指し、署名の名前が個人サイトへのリンクになる', async ({ page }) => {
+  await page.goto('/blog/what-is-onething/');
+  const article = (await readJsonLd(page)).find((block) => block['@type'] === 'BlogPosting') as
+    | { author: Record<string, unknown> }
+    | undefined;
+  expect(article?.author).toMatchObject({ '@type': 'Person', '@id': FOUNDER_ID, ...FOUNDER, jobTitle: 'OneThing 代表' });
+
+  const link = page.locator('.post-byline a');
+  await expect(link).toHaveCount(1);
+  await expect(link).toHaveAttribute('href', FOUNDER.url);
+  await expect(link).toHaveAttribute('rel', 'author');
+  await expect(link).toHaveText(FOUNDER.name);
+});
+
 test('検索エンジンの所有権確認タグが全ページにある', async ({ page }) => {
   for (const pagePath of PAGES) {
     await page.goto(pagePath);

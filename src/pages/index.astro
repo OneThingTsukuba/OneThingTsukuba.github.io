@@ -5,6 +5,8 @@ import '../styles/top.css';
 import { getCalendarDashboard, parseLocation, type CalendarEvent } from '../lib/calendar';
 import { formatPostDateLong, getSortedPosts } from '../lib/blog';
 import {
+  FOUNDER,
+  FOUNDER_ID,
   NAV_ITEMS,
   OG_IMAGE_PATH,
   ORGANIZATION_ID,
@@ -31,6 +33,13 @@ const organizationJsonLd = {
   foundingDate: '2023',
   areaServed: '茨城県つくば市',
   sameAs: [SOCIAL_LINKS.x, SOCIAL_LINKS.luma, SOCIAL_LINKS.connpass, SOCIAL_LINKS.github],
+  founder: {
+    '@type': 'Person',
+    '@id': FOUNDER_ID,
+    name: FOUNDER.name,
+    url: FOUNDER.url,
+    sameAs: [...FOUNDER.sameAs],
+  },
 };
 
 const websiteJsonLd = {
