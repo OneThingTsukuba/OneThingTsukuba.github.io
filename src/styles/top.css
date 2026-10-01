@@ -460,10 +460,6 @@
   color: var(--ac);
 }
 
-.link-row--all strong {
-  font-size: 18px;
-}
-
 .faq {
   padding-bottom: clamp(80px, 11vw, 150px);
 }
