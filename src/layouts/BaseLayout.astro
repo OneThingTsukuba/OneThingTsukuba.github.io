@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import {
   SITE_NAME_FULL,
+  SOCIAL_LINKS,
   SITE_DESCRIPTION,
   OG_IMAGE_PATH,
   absoluteUrl,
@@ -22,12 +23,6 @@ interface Props {
   /** og:type。トップは website、記事ページは article。 */
   ogType?: 'website' | 'article';
   navItems?: NavItem[];
-  /**
-   * ヘッダーのサイト名を h1 にするか。
-   * トップページだけ true。下層ページはページ固有の見出しを h1 にするので、
-   * ここを h1 にすると1ページに h1 が2つ出るか、ページの主題が伝わらなくなる。
-   */
-  brandAsHeading?: boolean;
 }
 
 const {
@@ -36,7 +31,6 @@ const {
   ogImage = OG_IMAGE_PATH,
   ogType = 'website',
   navItems = [],
-  brandAsHeading = false,
 } = Astro.props;
 
 // canonical は絶対URLでなければ意味がない。Astro.url はビルド時に astro.config の site を基準に解決される。
@@ -81,7 +75,14 @@ const ogImageUrl = absoluteUrl(ogImage);
     <!-- ロゴのキューブマークを favicon に使う (public/favicon.png、元画像は OneThing-logo.jpg)。
          旧 favicon.svg は「1」の文字アイコンで、ロゴ制定前の仮のもの -->
     <link rel="icon" href="/favicon.png" type="image/png" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#0B1020" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Google Search Console の所有権確認。消すと登録が外れ、検索の数字が見えなくなる。
          public/google7d2e18f9730f790c.html のファイル方式は所定の場所で見つからず失敗したため、
@@ -104,9 +105,9 @@ const ogImageUrl = absoluteUrl(ogImage);
          data-nav-open: 開閉状態そのもの。CSS の表示と aria-expanded の
            両方をここから導出する -->
     <header class="site-header" data-nav-open="false">
-      {
-        brandAsHeading ? (
-          <h1 class="header-title">
+      <div class="site-header-inner">
+        <p class="header-title">
+          <a href="/">
             {/* alt は空にする。直後に「OneThing」のテキストがあるので、
                 alt を入れると読み上げが「OneThing OneThing」と二重になる */}
             <img class="header-logo" src="/images/logo-mark.png" alt="" width="447" height="512" />
@@ -114,46 +115,36 @@ const ogImageUrl = absoluteUrl(ogImage);
               <span class="main-title">OneThing</span>
               <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
             </span>
-          </h1>
-        ) : (
-          <p class="header-title">
-            <a href="/">
-              <img class="header-logo" src="/images/logo-mark.png" alt="" width="447" height="512" />
-              <span class="header-text">
-                <span class="main-title">OneThing</span>
-                <span class="sub-title">-筑波大学エンジニアコミュニティ-</span>
-              </span>
-            </a>
-          </p>
-        )
-      }
-      {
-        navItems.length > 0 && (
-          <Fragment>
-            {/* 768px 以下でだけ出るハンバーガー。48x48 は指で押せる最小サイズ (Apple HIG は44pt) */}
-            <button
-              class="nav-toggle"
-              type="button"
-              aria-expanded="false"
-              aria-controls="site-nav"
-              aria-label="メニューを開く"
-            >
-              <span class="nav-toggle-bar" aria-hidden="true" />
-              <span class="nav-toggle-bar" aria-hidden="true" />
-              <span class="nav-toggle-bar" aria-hidden="true" />
-            </button>
-            <nav class="site-nav" id="site-nav" aria-label="メインナビゲーション">
-              <ul>
-                {navItems.map((item) => (
-                  <li>
-                    <a href={item.href}>{item.label}</a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </Fragment>
-        )
-      }
+          </a>
+        </p>
+        {
+          navItems.length > 0 && (
+            <Fragment>
+              {/* 768px 以下でだけ出るハンバーガー。48x48 は指で押せる最小サイズ (Apple HIG は44pt) */}
+              <button
+                class="nav-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="site-nav"
+                aria-label="メニューを開く"
+              >
+                <span class="nav-toggle-bar" aria-hidden="true" />
+                <span class="nav-toggle-bar" aria-hidden="true" />
+                <span class="nav-toggle-bar" aria-hidden="true" />
+              </button>
+              <nav class="site-nav" id="site-nav" aria-label="メインナビゲーション">
+                <ul>
+                  {navItems.map((item) => (
+                    <li>
+                      <a href={item.href}>{item.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </Fragment>
+          )
+        }
+      </div>
     </header>
 
     <main class="site-main" id="main">
@@ -161,7 +152,17 @@ const ogImageUrl = absoluteUrl(ogImage);
     </main>
 
     <footer class="site-footer">
-      <p>&copy; {currentYear} OneThing All Rights Reserved.</p>
+      <div class="site-footer-inner">
+        <p class="site-footer-name">{SITE_NAME_FULL}</p>
+        <ul class="site-footer-links">
+          <li><a href={SOCIAL_LINKS.x}>公式X</a></li>
+          <li><a href={SOCIAL_LINKS.luma}>Luma</a></li>
+          <li><a href={SOCIAL_LINKS.connpass}>connpass</a></li>
+          <li><a href={SOCIAL_LINKS.github}>GitHub</a></li>
+        </ul>
+        <p>お問い合わせは公式XのDMにて。</p>
+        <p>&copy; {currentYear} OneThing All Rights Reserved.</p>
+      </div>
     </footer>
 
     <script>

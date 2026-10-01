@@ -1,22 +1,26 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EventCalendarPanel from '../components/EventCalendarPanel.astro';
+import '../styles/top.css';
 import { getCalendarDashboard } from '../lib/calendar';
+import { formatPostDateLong, getSortedPosts } from '../lib/blog';
 import { NAV_ITEMS, SITE_DESCRIPTION, SITE_NAME_FULL, SOCIAL_LINKS, absoluteUrl } from '../lib/site';
 
 // 構造化データ用にイベントを取る。EventCalendarPanel と同じ関数で、結果はモジュール内でキャッシュされる。
 const dashboard = await getCalendarDashboard(12, { sourceIds: ['onething'] });
 
+const latestPosts = (await getSortedPosts()).slice(0, 3);
+
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: SITE_NAME_FULL,
-  alternateName: 'OneThing',
+  alternateName: ['OneThing', 'OneThing Tsukuba'],
   url: absoluteUrl('/'),
   description: SITE_DESCRIPTION,
   foundingDate: '2023',
   areaServed: '茨城県つくば市',
-  sameAs: [SOCIAL_LINKS.x, SOCIAL_LINKS.luma, SOCIAL_LINKS.connpass],
+  sameAs: [SOCIAL_LINKS.x, SOCIAL_LINKS.luma, SOCIAL_LINKS.connpass, SOCIAL_LINKS.github],
 };
 
 // Google のイベント リッチリザルト用。日時は ISO 8601 で渡す必要がある。
@@ -47,51 +51,45 @@ const eventsJsonLd = dashboard.events.map((event) => ({
   ...(event.shortDescription ? { description: event.shortDescription } : {}),
 }));
 
+const faqItems = [
+  {
+    question: 'プログラミング初心者でも参加できますか？',
+    answer:
+      '参加できます。初心者向けのプログラミングワークショップも開いています。もくもく会は各自が手を動かす場なので、学びはじめの人でも入りやすい形式です。',
+  },
+  {
+    question: '参加費はかかりますか？',
+    answer: 'かかりません。LT会・勉強会・もくもく会はいずれも参加費無料です。',
+  },
+  {
+    question: '筑波大学の学生でなくても参加できますか？',
+    answer:
+      '筑波大学の学生を中心としたコミュニティですが、つくば周辺で活動しているエンジニアの方も参加しています。まずはイベント一覧から気になる回に来てください。',
+  },
+  {
+    question: '学類や学年の指定はありますか？',
+    answer: 'ありません。情報系以外の学類の学生も参加しています。1年生の参加も歓迎です。',
+  },
+];
+
 const faqJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: 'プログラミング初心者でも参加できますか？',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: '参加できます。初心者向けのプログラミングワークショップも開いています。もくもく会は各自が手を動かす場なので、学びはじめの人でも入りやすい形式です。',
-      },
+  mainEntity: faqItems.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer,
     },
-    {
-      '@type': 'Question',
-      name: '参加費はかかりますか？',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'かかりません。LT会・勉強会・もくもく会はいずれも参加費無料です。',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '筑波大学の学生でなくても参加できますか？',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: '筑波大学の学生を中心としたコミュニティですが、つくば周辺で活動しているエンジニアの方も参加しています。まずはイベント一覧から気になる回に来てください。',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '学類や学年の指定はありますか？',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'ありません。情報系以外の学類の学生も参加しています。1年生の参加も歓迎です。',
-      },
-    },
-  ],
+  })),
 };
 ---
 
 <BaseLayout
-  title="OneThing｜筑波大学のエンジニアコミュニティ｜もくもく会・LT会・勉強会"
+  title="OneThing｜筑波大学・つくばのエンジニアサークル・コミュニティ"
   description={SITE_DESCRIPTION}
   navItems={[...NAV_ITEMS]}
-  brandAsHeading
 >
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
@@ -101,11 +99,35 @@ const faqJsonLd = {
     ))}
   </Fragment>
 
+  <section class="hero">
+    <div>
+      <h1>筑波大学の<span class="accent">エンジニア</span>コミュニティ<br /> OneThing</h1>
+      <p class="lead">週1回程度のもくもく会、月1回の勉強会、不定期のLT会。初心者歓迎、参加費無料。</p>
+      <div class="cta">
+        <a class="btn" href={SOCIAL_LINKS.luma}>イベント一覧を見る</a>
+        <a class="btn btn-ghost" href="/calender/">カレンダー</a>
+      </div>
+    </div>
+    <div class="term" role="group" aria-label="OneThing の概要">
+      <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+      <dl>
+        <dt>拠点</dt><dd>茨城県つくば市</dd>
+        <dt>活動開始</dt><dd>2023年</dd>
+        <dt>もくもく会</dt><dd>週1回程度</dd>
+        <dt>勉強会</dt><dd>月1回</dd>
+        <dt>LT会</dt><dd>不定期</dd>
+        <dt>参加費</dt><dd>無料</dd>
+        <dt>入会手続き</dt><dd>なし</dd>
+      </dl>
+    </div>
+  </section>
+
   <section id="onething">
     <h2>OneThingとは</h2>
     <p>
-      2023年より活動している、筑波大学のエンジニアコミュニティです。つくば市を拠点に、週1回のもくもく会と、月に数回の勉強会・LT会を開いています。
+      2023年より活動している、筑波大学のエンジニアコミュニティです。つくば市を拠点に、週1回程度のもくもく会、月1回の勉強会、不定期のLT会を開いています。
     </p>
+    <p>筑波大学の学生が運営するエンジニアサークルです（大学の公認団体ではありません）。</p>
   </section>
 
   <section id="purpose">
@@ -117,24 +139,18 @@ const faqJsonLd = {
     <h2>活動内容</h2>
     <ul class="activity-grid">
       <li class="activity-card">
-        <div class="activity-card-head">
-          <h3>もくもく会</h3>
-          <span class="activity-cadence">週1回程度</span>
-        </div>
+        <h3>もくもく会</h3>
+        <span class="activity-cadence">週1回程度</span>
         <p>各自が作りたいものを持ち寄って手を動かす会。途中参加も途中退出もできます。手を止めた雑談では、それぞれの専門に沿った技術の話が出ます。</p>
       </li>
       <li class="activity-card">
-        <div class="activity-card-head">
-          <h3>勉強会</h3>
-          <span class="activity-cadence">月に数回</span>
-        </div>
+        <h3>勉強会</h3>
+        <span class="activity-cadence">月1回</span>
         <p>知りたいことを、知っている人が話す形式。これまでのトピックは Claude Code の使い方と git command。</p>
       </li>
       <li class="activity-card">
-        <div class="activity-card-head">
-          <h3>LT会</h3>
-          <span class="activity-cadence">月に数回</span>
-        </div>
+        <h3>LT会</h3>
+        <span class="activity-cadence">不定期</span>
         <p>1人5分の持ち時間で、作ったものを話す会。飛び入りの発表も歓迎しています。</p>
       </li>
     </ul>
@@ -144,30 +160,58 @@ const faqJsonLd = {
     <EventCalendarPanel variant="overview" heading="直近の活動予定" headingId="top-event-calendar" />
   </section>
 
-  <section id="participation">
+  {
+    latestPosts.length > 0 && (
+      <section id="latest-posts">
+        <h2>最新の記事</h2>
+        <ul class="link-rows">
+          {latestPosts.map((post) => (
+            <li>
+              <a class="link-row" href={`/blog/${post.id}/`}>
+                <span class="link-row-body">
+                  <strong>{post.data.title}</strong>
+                  <span>
+                    <time datetime={post.data.pubDate.toISOString()}>{formatPostDateLong(post.data.pubDate)}</time>・{post.data.category}
+                  </span>
+                </span>
+                <span class="link-row-action" aria-hidden="true">読む</span>
+              </a>
+            </li>
+          ))}
+          <li>
+            <a class="link-row" href="/blog/">
+              <span class="link-row-body">
+                <strong>記事一覧</strong>
+                <span>活動の紹介、開催報告、技術の解説</span>
+              </span>
+              <span class="link-row-action" aria-hidden="true">開く</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+    )
+  }
+
+  <section id="participation" class="join">
     <h2>OneThingへの参加方法</h2>
     <p>
       事前の入会手続きはありません。以下のイベント一覧から気になる回を選んで、当日来てください。
     </p>
-    <p>
-      <a href={SOCIAL_LINKS.luma}>イベント一覧を見る</a>
-    </p>
+    <div class="cta">
+      <a class="btn" href={SOCIAL_LINKS.luma}>イベント一覧を見る</a>
+      <a class="btn btn-ghost" href={SOCIAL_LINKS.x}>公式Xで問い合わせ</a>
+    </div>
   </section>
 
   <section id="faq">
     <h2>よくある質問</h2>
     <dl class="faq-list">
-      <dt>プログラミング初心者でも参加できますか？</dt>
-      <dd>参加できます。初心者向けのワークショップも開いています。もくもく会は各自が手を動かす場なので、学びはじめの人でも入りやすい形式です。</dd>
-
-      <dt>参加費はかかりますか？</dt>
-      <dd>かかりません。LT会・勉強会・もくもく会はいずれも参加費無料です。</dd>
-
-      <dt>筑波大学の学生でなくても参加できますか？</dt>
-      <dd>筑波大学の学生を中心としたコミュニティですが、つくば周辺で活動しているエンジニアの方も参加しています。</dd>
-
-      <dt>学類や学年の指定はありますか？</dt>
-      <dd>ありません。情報系以外の学類の学生も参加しています。1年生の参加も歓迎です。</dd>
+      {faqItems.map((item) => (
+        <Fragment>
+          <dt>{item.question}</dt>
+          <dd>{item.answer}</dd>
+        </Fragment>
+      ))}
     </dl>
   </section>
 

@@ -1,11 +1,13 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/blog.css';
 import { NAV_ITEMS, SITE_NAME_FULL, absoluteUrl } from '../../lib/site';
+import { formatPostDate, getSortedPosts } from '../../lib/blog';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
+  const posts = await getSortedPosts();
   return posts.map((post) => ({
     params: { slug: post.id },
     props: { post },
@@ -14,16 +16,6 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
-
-// 表示はビルド環境のタイムゾーンに引きずられないよう日本時間で固定する。
-// 固定しないと、日時付きの pubDate が UTC ビルドで前日にずれる。
-const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
-  timeZone: 'Asia/Tokyo',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
-const formatDate = (date: Date) => dateFormatter.format(date).replaceAll('/', '.');
 
 const postUrl = absoluteUrl(`/blog/${post.id}/`);
 // 代表画像。OGP と構造化データで同じものを使う
@@ -69,8 +61,8 @@ const articleJsonLd = {
 
     <span class="post-meta">
       <span class="post-category">{post.data.category}</span>
-      <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
-      {post.data.updatedDate && <span class="post-updated">更新 {formatDate(post.data.updatedDate)}</span>}
+      <time datetime={post.data.pubDate.toISOString()}>{formatPostDate(post.data.pubDate)}</time>
+      {post.data.updatedDate && <span class="post-updated">更新 {formatPostDate(post.data.updatedDate)}</span>}
     </span>
 
     <h1>{post.data.title}</h1>

@@ -13,7 +13,7 @@ export const SITE_NAME_FULL = 'OneThing -筑波大学エンジニアコミュニ
 
 /** 検索結果とSNSカードに出る既定の説明文。120文字前後に収める。 */
 export const SITE_DESCRIPTION =
-  '筑波大学のエンジニアコミュニティ OneThing の公式サイト。週1のもくもく会、LT会、Claude Code や git の勉強会を開いています。初心者歓迎、参加費無料。';
+  '筑波大学の学生が運営する、つくばのエンジニアサークル・コミュニティ OneThing。週1回程度のもくもく会、月1回の勉強会、不定期のLT会を開いています。初心者歓迎、参加費無料。';
 
 /** OGP画像。1200x630。X / Slack でリンクを貼ったときに出る。 */
 export const OG_IMAGE_PATH = '/ogp.png';
@@ -23,6 +23,7 @@ export const SOCIAL_LINKS = {
   x: 'https://x.com/OneThingTsukuba',
   luma: 'https://luma.com/user/OneThingTsukuba',
   connpass: 'https://onething-lt.connpass.com',
+  github: 'https://github.com/OneThingTsukuba',
 } as const;
 
 /** ヘッダーのナビ。スマホではハンバーガーの中身になるので、行き先は4つに絞る。
