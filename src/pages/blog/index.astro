@@ -12,11 +12,14 @@ const posts = await getSortedPosts();
   description="OneThing（筑波大学エンジニアコミュニティ）の記事一覧。活動の紹介、勉強会・LT会の開催報告、技術の解説を掲載しています。"
   navItems={[...NAV_ITEMS]}
 >
-  <section>
-    <h1>記事一覧</h1>
+  <section class="post-index">
+    <header class="page-head">
+      <h1>記事一覧</h1>
+      <p>活動の紹介、勉強会・LT会の開催報告、技術の解説。</p>
+    </header>
     {
       posts.length === 0 ? (
-        <p>まだ記事がありません。</p>
+        <p class="post-empty">まだ記事がありません。</p>
       ) : (
         <ul class="post-list">
           {posts.map((post) => (

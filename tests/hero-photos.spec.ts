@@ -1,69 +1,59 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 const EXPECTED_ALTS = [
   'OneThing の LT会で、スライドを映して発表するメンバー',
   'ハッカソンに参加した OneThing のメンバー',
 ];
 
-test('ヒーローに写真が2枚、概要カードの上に並ぶ', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 800 });
+const photos = (page: Page) => page.locator('.hero .hero-photo');
+
+test('ヒーローに写真が2枚、同時に見えている', async ({ page }) => {
+  await page.setViewportSize({ width: 1400, height: 900 });
   await page.goto('/');
 
-  const photos = page.locator('.hero .hero-photo');
-  await expect(photos).toHaveCount(2);
-  expect(await photos.evaluateAll((imgs) => imgs.map((img) => img.getAttribute('alt')))).toEqual(EXPECTED_ALTS);
-
-  const frame = await page.locator('.hero-photos').boundingBox();
-  const term = await page.locator('.hero .term').boundingBox();
-  expect(frame && term).toBeTruthy();
-  expect(frame!.y + frame!.height).toBeLessThanOrEqual(term!.y);
-  expect(frame!.width / frame!.height).toBeCloseTo(4 / 3, 1);
+  await expect(photos(page)).toHaveCount(2);
+  expect(await photos(page).evaluateAll((imgs) => imgs.map((img) => img.getAttribute('alt')))).toEqual(EXPECTED_ALTS);
+  for (const img of await photos(page).all()) {
+    await expect(img).toBeVisible();
+    expect(await img.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+  }
 });
 
 test('写真は最初の画面で読み込まれ、WebP に変換されている', async ({ page }) => {
   await page.goto('/');
-  const photos = page.locator('.hero .hero-photo');
 
-  for (const img of await photos.all()) {
+  for (const img of await photos(page).all()) {
     await expect(img).toHaveAttribute('loading', 'eager');
     await expect(img).toHaveAttribute('src', /\.webp$/);
     await expect(img).toHaveAttribute('srcset', /480w.*960w/);
     expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
   }
-  await expect(photos.nth(0)).toHaveAttribute('fetchpriority', 'high');
-  await expect(photos.nth(1)).toHaveAttribute('fetchpriority', 'low');
+  await expect(photos(page).nth(0)).toHaveAttribute('fetchpriority', 'high');
+  await expect(photos(page).nth(1)).toHaveAttribute('fetchpriority', 'low');
 });
 
-test('1枚目は動かず、2枚目が約6秒後に重なって切り替わる', async ({ page }) => {
-  await page.goto('/');
-  const photos = page.locator('.hero .hero-photo');
-  const opacityAt = (ms: number) =>
-    photos.nth(1).evaluate((el, t) => {
-      const animation = el.getAnimations()[0];
-      animation.pause();
-      animation.currentTime = t;
-      return getComputedStyle(el).opacity;
-    }, ms);
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 375, height: 667 },
+]) {
+  test(`${viewport.width}x${viewport.height} では写真が先頭に来て、参加ボタンまで最初の画面に収まる`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
 
-  expect(await photos.nth(0).evaluate((el) => el.getAnimations().length)).toBe(0);
-  expect(await opacityAt(2000)).toBe('0');
-  expect(await opacityAt(8000)).toBe('1');
-  expect(await opacityAt(11900)).not.toBe('1');
-});
+    const header = await page.locator('.site-header').boundingBox();
+    const photo = await photos(page).nth(0).boundingBox();
+    const cta = await page.locator('[data-link-location="hero"] .btn').boundingBox();
+    expect(header && photo && cta).toBeTruthy();
 
-test('動きを減らす設定では切り替えず、1枚目だけを見せる', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/');
-  const second = page.locator('.hero .hero-photo').nth(1);
-  const style = await second.evaluate((el) => {
-    const s = getComputedStyle(el);
-    return { animation: s.animationName, opacity: s.opacity };
+    const headerBottom = header!.y + header!.height;
+    expect(photo!.y).toBeGreaterThanOrEqual(headerBottom - 1);
+    expect(photo!.y - headerBottom).toBeLessThanOrEqual(120);
+    expect(cta!.y + cta!.height).toBeLessThanOrEqual(viewport.height);
   });
-  expect(style).toEqual({ animation: 'none', opacity: '0' });
-  expect(await page.locator('.hero .hero-photo').nth(0).evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
-});
+}
 
-for (const width of [375, 900]) {
+for (const width of [375, 900, 1400]) {
   test(`${width}px 幅でも横スクロールが出ない`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
@@ -72,7 +62,5 @@ for (const width of [375, 900]) {
       clientWidth: document.documentElement.clientWidth,
     }));
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
-    const frame = await page.locator('.hero-photos').boundingBox();
-    expect(frame!.width).toBeGreaterThan(300);
   });
 }
