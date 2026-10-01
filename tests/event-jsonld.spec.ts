@@ -5,7 +5,7 @@ import { buildUpcomingRows, buildSessionNote, parseLocation, parseSessionNumber,
 
 const SITE = fs.readFileSync(path.join(process.cwd(), 'astro.config.mjs'), 'utf8').match(/site:\s*'([^']+)'/)?.[1];
 const ORGANIZATION_ID = new URL('/#organization', SITE).toString();
-const OG_IMAGE_URL = new URL('/ogp.png', SITE).toString();
+const OG_IMAGE_URL = new URL('/ogp-2026-10.jpg', SITE).toString();
 
 const REAL_LOCATION =
   '株式会社ゲームシスト, 日本、〒305-0005 茨城県つくば市天久保３丁目１４−１１ ヴィレッジ コスモ 101';

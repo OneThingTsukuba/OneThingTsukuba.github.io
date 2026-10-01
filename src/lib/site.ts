@@ -16,7 +16,7 @@ export const SITE_DESCRIPTION =
   '筑波大学の学生が運営する、つくばのエンジニアサークル・コミュニティ OneThing。週1回程度のもくもく会、月1回の勉強会、不定期のLT会を開いています。初心者歓迎、参加費無料。';
 
 /** OGP画像。1200x630。X / Slack でリンクを貼ったときに出る。 */
-export const OG_IMAGE_PATH = '/ogp.png';
+export const OG_IMAGE_PATH = '/ogp-2026-10.jpg';
 
 /** 外部リンク。JSON-LD の sameAs と問い合わせ導線で共用する。 */
 export const SOCIAL_LINKS = {
